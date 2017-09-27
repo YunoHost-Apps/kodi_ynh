@@ -8,7 +8,6 @@ Kodi for YunoHost
 **Shipped version:** 16.1 from jessie backports
 
 [![Install Kodi with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=kodi)
-![](https://github.com/nextcloud/screenshots/blob/master/files/filelist.png)
 
 ## Current package status
 * The scprit use jessie backports to install Kodi 16 (We have to wait for Debian Strech officialy install Kodi 17)
