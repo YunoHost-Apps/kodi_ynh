@@ -1,0 +1,57 @@
+#!/bin/bash
+
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+
+domain=$(ynh_app_setting_get $app domain)
+final_path=$(ynh_app_setting_get $app final_path)
+launch_on_boot=$(ynh_app_setting_get $app launch_on_boot)
+
+
+#=================================================
+# REMOVE DEPENDENCIES
+#=================================================
+
+# Remove metapackage and its dependencies
+ynh_package_autoremove kodi xinit dbus-x11
+sudo rm -f "/etc/apt/sources.list.d/${app}.list"
+ynh_package_update
+
+
+#=================================================
+# REMOVE APP MAIN DIR
+#=================================================
+
+# Remove the app directory securely
+ynh_secure_remove "$final_path"
+
+
+#=================================================
+# REMOVE SYSTEMD SCRIPT (SERVICE)
+#=================================================
+
+ynh_remove_systemd_config
+
+
+#=================================================
+# REMOVE KODI USER
+#=================================================
+
+ynh_system_user_delete "$app"
+sudo rm -rf "/home/$app"
+sudo sed -i 's/allowed_users=anybody/allowed_users=console/' /etc/X11/Xwrapper.config
+
+
+
