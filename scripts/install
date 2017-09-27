@@ -5,21 +5,18 @@
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
-
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
-
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 launch_on_boot=$YNH_APP_ARG_LAUNCH_ON_BOOT
@@ -39,7 +36,6 @@ ynh_webpath_register $app $domain $path_url
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
-
 ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app final_path $final_path
 ynh_app_setting_set $app launch_on_boot $launch_on_boot
@@ -51,7 +47,6 @@ sudo mkdir /home/$app
 ynh_system_user_create "$app" "/home/$app"
 sudo chown -R $app:$app /home/$app
 sudo usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input $app
-sudo sed -i 's/allowed_users=console/allowed_users=anybody/' /etc/X11/Xwrapper.config
 
 #=================================================
 # ADD SYSTEMD SCRIPT (SERVICE)
@@ -66,5 +61,11 @@ sudo cp ../conf/kodi.service /etc/systemd/system/kodi.service
 #=================================================
 sudo cp ../conf/kodi.list /etc/apt/sources.list.d/${app}.list
 ynh_package_update
-ynh_package_install xinit dbus-x11 kodi
+ynh_package_install xorg dbus-x11 kodi
+
+#=================================================
+# X11 SETTINGS
+#=================================================
+sudo sed -i 's/allowed_users=console/allowed_users=anybody/' /etc/X11/Xwrapper.config
+
 
