@@ -57,9 +57,12 @@ sudo cp ../conf/kodi.service /etc/systemd/system/kodi.service
 
 
 #=================================================
-# INSTALL DEPENDENCIES
+# INSTALL DEPENDENCIES AND KODI
 #=================================================
+arch=$(uname -m)
+if [[ $arch != arm*  ]]; then
 sudo cp ../conf/kodi.list /etc/apt/sources.list.d/${app}.list
+fi
 ynh_package_update
 ynh_package_install xorg dbus-x11 kodi
 
