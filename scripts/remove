@@ -25,7 +25,7 @@ launch_on_boot=$(ynh_app_setting_get $app launch_on_boot)
 #=================================================
 # Remove metapackage and its dependencies
 sudo sed -i 's/allowed_users=anybody/allowed_users=console/' /etc/X11/Xwrapper.config
-ynh_package_autoremove kodi xorg dbus-x11
+ynh_package_autoremove kodi xorg dbus-x11 xserver-xorg-legacy
 arch=$(uname -m)
 if [[ $arch != arm*  ]]; then
 sudo rm -f "/etc/apt/sources.list.d/${app}.list"
@@ -51,6 +51,12 @@ ynh_remove_systemd_config
 #=================================================
 ynh_system_user_delete "$app"
 sudo rm -rf "/home/$app"
+
+
+#=================================================
+# REMOVE NGINX CONFIGURATION
+#=================================================
+ynh_remove_nginx_config
 
 
 
