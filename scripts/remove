@@ -19,6 +19,21 @@ domain=$(ynh_app_setting_get $app domain)
 final_path=$(ynh_app_setting_get $app final_path)
 launch_on_boot=$(ynh_app_setting_get $app launch_on_boot)
 
+#=================================================
+# REMOVE SYSTEMD SCRIPT (SERVICE)
+#=================================================
+ynh_remove_systemd_config
+
+#=================================================
+# REMOVE SERVICE FROM ADMIN PANEL
+#=================================================
+if yunohost service status | grep -q $app
+then
+	echo "Remove $app service"
+	yunohost service remove $app
+fi
+sudo systemctl daemon-reload
+
 
 #=================================================
 # REMOVE DEPENDENCIES
@@ -28,7 +43,7 @@ sudo sed -i 's/allowed_users=anybody/allowed_users=console/' /etc/X11/Xwrapper.c
 ynh_package_autoremove kodi xorg dbus-x11 xserver-xorg-legacy
 arch=$(uname -m)
 if [[ $arch != arm*  ]]; then
-sudo rm -f "/etc/apt/sources.list.d/${app}.list"
+    sudo rm -f "/etc/apt/sources.list.d/${app}.list"
 fi
 ynh_package_update
 
@@ -38,12 +53,6 @@ ynh_package_update
 #=================================================
 # Remove the app directory securely
 ynh_secure_remove "$final_path"
-
-
-#=================================================
-# REMOVE SYSTEMD SCRIPT (SERVICE)
-#=================================================
-ynh_remove_systemd_config
 
 
 #=================================================

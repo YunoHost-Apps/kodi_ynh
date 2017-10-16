@@ -15,11 +15,12 @@ Kodi for YunoHost
 * The scprit use jessie backports to install Kodi 16 (We have to wait for Debian Strech officialy install Kodi 17)
 * A dedicated kodi user is create
 * Use of systemd
-* You can launch Kodi with the ```sudo systemctl start kodi``` command
+* You can launch Kodi with the ```sudo systemctl start kodi``` command or stop Kodi with ```sudo systemctl stop kodi```
+* You can choose if you want that Kodi start at YunoHost server statup
+* You can access to the control web interface only if you choose a "/" path (Reverse proxy issue)
+* Kodi directly start after package installation
 
 ## To do
-* Test package on Raspberry
-* Add option to launch Kodi at server startup
 * Add the control web interface to YunoHost user interface
 * Maybe we can launch Kodi from YunoHost web interface instead of SSH
 
