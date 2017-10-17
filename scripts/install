@@ -64,7 +64,10 @@ if [[ $arch != arm*  ]]; then
     sudo cp ../conf/kodi.list /etc/apt/sources.list.d/${app}.list
 fi
 ynh_package_update
-ynh_package_install xserver-xorg-legacy xorg dbus-x11 kodi
+if [[ $arch == arm*  ]]; then
+    ynh_package_install xserver-xorg-legacy
+fi
+ynh_package_install xorg dbus-x11 kodi
 
 #=================================================
 # X11 SETTINGS
