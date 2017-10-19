@@ -43,6 +43,7 @@ ynh_webpath_available $domain $path_url
 ynh_webpath_register $app $domain $path_url
 
 
+
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
@@ -124,7 +125,16 @@ fi
 #=================================================
 # NGINX
 #=================================================
-ynh_add_nginx_config
+#ynh_add_nginx_config
+finalnginxconf="/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_backup_if_checksum_is_different "$finalnginxconf"
+sudo cp ../conf/nginx.conf "$finalnginxconf"
+
+if [ "$path_url" == "/" ]; then
+    ynh_replace_string "__PATH__/" "/" "$finalnginxconf"
+else
+    ynh_replace_string "__PATH__" "$path_url" "$finalnginxconf"
+fi
 
 ynh_app_setting_set $app protected_uris "/"
 

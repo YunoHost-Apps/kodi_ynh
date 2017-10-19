@@ -25,7 +25,6 @@ Kodi for YunoHost
 ## To do
 * Test control web interface on Raspberry
 * Switch from skipped_uri to protected_uri and try if it still works for jsonrpc and image location
-* Check if a "/" path still works
 * Write the upgrade and backup script
 * Check if webserver port (8080) is free
 
