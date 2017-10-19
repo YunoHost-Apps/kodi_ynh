@@ -6,9 +6,9 @@
         "en": "Transform your YunoHost server into media center with Kodi",
         "fr": "Transfromez votre serveur YunoHost en media center avec Kodi"
     },
-    "version": "17.4",
+    "version": "17.3",
     "url": "https://kodi.tv",
-    "license": "free",
+    "license": "GPLv2",
     "maintainer": {
         "name": "Sylvain Cecchetto",
         "email": "cecchetto.sylvain@me.com",
