@@ -65,9 +65,10 @@ if [[ $arch != arm*  ]]; then
 fi
 ynh_package_update
 if [[ $arch == arm*  ]]; then
-    ynh_package_install xserver-xorg-legacy
+    ynh_package_install xserver-xorg-legacy xorg dbus-x11 kodi
+else
+	ynh_package_install xorg xinit dbus-x11 kodi
 fi
-ynh_package_install xorg dbus-x11 kodi
 
 #=================================================
 # X11 SETTINGS
@@ -84,12 +85,27 @@ yunohost service add $app --log "/home/$app/.kodi/temp/kodi.log"
 #=================================================
 # CONTROL WEB INTERFACE
 #=================================================
+if [[ $arch != arm*  ]]; then
+    sudo wget "https://github.com/xbmc/chorus2/releases/download/2.4.4/webinterface.default.2.4.4.zip" -P /tmp
+    sudo unzip "/tmp/webinterface.default.2.4.4.zip" -d /tmp/
+    sudo mkdir -p /home/kodi/.kodi/addons/
+    sudo mv /tmp/webinterface.default/ /home/kodi/.kodi/addons/webinterface.chorus2/
+fi
 sudo mkdir -p /home/$app/.kodi/userdata/
 sudo cp ../conf/advancedsettings.xml /home/$app/.kodi/userdata/advancedsettings.xml
 sudo chown -R $app:$app /home/$app
+
+
+#=================================================
+# NGINX
+#=================================================
 ynh_add_nginx_config
 
-ynh_app_setting_set $app protected_uris "/"
+ynh_app_setting_set $app skipped_uris "/"
+domainregex=$(echo "$domain" | sed 's/-/\%&/g')
+
+ynh_app_setting_set $app skipped_regex "$domainregex/jsonrpc.*$,$domainregex/image.*$"
+
 
 # Reload SSOwat config
 yunohost app ssowatconf

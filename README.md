@@ -12,20 +12,27 @@ Kodi for YunoHost
 [![Install Kodi with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=kodi)
 
 ## Current package status
-* The scprit use jessie backports to install Kodi 16 (We have to wait for Debian Strech officialy install Kodi 17)
+* The scprit use jessie backports to install Kodi 16 on x86 machines (We have to wait for YunoHost Debian Strech support or use testing source)
 * A dedicated kodi user is create
 * Use of systemd
 * You can launch Kodi with the ```sudo systemctl start kodi``` command or stop Kodi with ```sudo systemctl stop kodi```
 * You can choose if you want that Kodi start at YunoHost server statup
-* You can access to the control web interface only if you choose a "/" path (Reverse proxy issue)
+* You can access to the control web interface from the YunoHost pannel
 * Kodi directly start after package installation
+* Start and stop Kodi from Admin YunoHost services tab
 
 ## To do
-* Add the control web interface to YunoHost user interface
-* Maybe we can launch Kodi from YunoHost web interface instead of SSH
+* Test control web interface on Raspberry
+* Include SSOWat pannel in nginx.conf
+* Switch from skipped_uri to protected_uri and try if it still works
+* Add missing elements in remove script
+* Add option in manifest to open 8080 port to be able to use Kodi remote smartphone app
+* Check if a "/" path still works
+* Write the upgrade script
 
 ## Links
 
- * Report a bug: Use GitHub issues
+ * Report a bug: Use GitHub issues or dedicated forum
+ * YunoHost forum thread: [Kodi package](https://forum.yunohost.org/t/kodi-package-yunohost-as-a-media-center/3561/17)
  * Kodi website: https://kodi.tv
  * YunoHost website: https://yunohost.org/
