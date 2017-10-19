@@ -101,7 +101,7 @@ sudo chown -R $app:$app /home/$app
 #=================================================
 ynh_add_nginx_config
 
-ynh_app_setting_set $app skipped_uris "/"
+ynh_app_setting_set $app protected_uris "/"
 domainregex=$(echo "$domain" | sed 's/-/\%&/g')
 
 ynh_app_setting_set $app skipped_regex "$domainregex/jsonrpc.*$,$domainregex/image.*$"

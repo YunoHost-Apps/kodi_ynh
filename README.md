@@ -20,11 +20,11 @@ Kodi for YunoHost
 * You can access to the control web interface from the YunoHost pannel
 * Kodi directly start after package installation
 * Start and stop Kodi from Admin YunoHost services tab
+* SSOWat pannel
 
 ## To do
 * Test control web interface on Raspberry
-* Include SSOWat pannel in nginx.conf
-* Switch from skipped_uri to protected_uri and try if it still works
+* Switch from skipped_uri to protected_uri and try if it still works for jsonrpc and image location
 * Add missing elements in remove script
 * Add option in manifest to open 8080 port to be able to use Kodi remote smartphone app
 * Check if a "/" path still works
