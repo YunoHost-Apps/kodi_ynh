@@ -9,20 +9,48 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
+
 #=================================================
 # LOAD SETTINGS
 #=================================================
-
 app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get $app domain)
 final_path=$(ynh_app_setting_get $app final_path)
 launch_on_boot=$(ynh_app_setting_get $app launch_on_boot)
+open_webserver_port=$(ynh_app_setting_get $app open_webserver_port)
+
+#=================================================
+# GLOBAL VARS
+#=================================================
+arch=$(uname -m)
+
 
 #=================================================
 # REMOVE SYSTEMD SCRIPT (SERVICE)
 #=================================================
+# Stop and diasble Kodi service
+# Remove kodi.service file
 ynh_remove_systemd_config
+
+
+
+#=================================================
+# REMOVE NGINX CONFIGURATION
+#=================================================
+ynh_remove_nginx_config
+
+
+
+#=================================================
+# CLOSE WEB SERVER PORT
+#=================================================
+if [ $open_webserver_port -eq 1 ]
+then
+    yunohost firewall disallow TCP 8080 2>&1
+fi
+
+
 
 #=================================================
 # REMOVE SERVICE FROM ADMIN PANEL
@@ -35,17 +63,32 @@ fi
 sudo systemctl daemon-reload
 
 
+
 #=================================================
-# REMOVE DEPENDENCIES
+# X11 SETTINGS
 #=================================================
-# Remove metapackage and its dependencies
 sudo sed -i 's/allowed_users=anybody/allowed_users=console/' /etc/X11/Xwrapper.config
-ynh_package_autoremove kodi xorg dbus-x11 xserver-xorg-legacy
-arch=$(uname -m)
+
+
+
+#=================================================
+# REMOVE DEPENDENCIES AND KODI
+#=================================================
 if [[ $arch != arm*  ]]; then
-    sudo rm -f "/etc/apt/sources.list.d/${app}.list"
+    ynh_package_remove xorg xinit dbus-x11 kodi
+    ynh_secure_remove "/etc/apt/sources.list.d/${app}.list"
+    ynh_package_update
+else
+	ynh_package_remove xserver-xorg-legacy xorg dbus-x11 kodi
 fi
-ynh_package_update
+
+
+
+#=================================================
+# REMOVE SYSTEMD CONFIG
+#=================================================
+ynh_remove_systemd_config
+
 
 
 #=================================================
@@ -55,17 +98,11 @@ ynh_package_update
 ynh_secure_remove "$final_path"
 
 
+
 #=================================================
 # REMOVE KODI USER
 #=================================================
 ynh_system_user_delete "$app"
-sudo rm -rf "/home/$app"
-
-
-#=================================================
-# REMOVE NGINX CONFIGURATION
-#=================================================
-ynh_remove_nginx_config
 
 
 

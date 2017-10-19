@@ -25,10 +25,9 @@ Kodi for YunoHost
 ## To do
 * Test control web interface on Raspberry
 * Switch from skipped_uri to protected_uri and try if it still works for jsonrpc and image location
-* Add missing elements in remove script
-* Add option in manifest to open 8080 port to be able to use Kodi remote smartphone app
 * Check if a "/" path still works
-* Write the upgrade script
+* Write the upgrade and backup script
+* Check if webserver port (8080) is free
 
 ## Links
 

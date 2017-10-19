@@ -50,6 +50,15 @@
                     "fr": "Démarrer Kodi au démarrage du serveur YunoHost"
                 },
                 "default": true
+            },
+            {
+                "name": "open_webserver_port",
+                "type": "boolean",
+                "ask": {
+                    "en": "Open port 8080 in order to use a smartphone Kodi remote app on your local network",
+                    "fr": "Ouvrir le port 8080 afin de pouvoir utiliser une application smartphone de télécommande Kodi sur le réseau local"
+                },
+                "default": false
             }
         ]
     }

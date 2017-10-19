@@ -20,9 +20,17 @@ ynh_abort_if_errors
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 launch_on_boot=$YNH_APP_ARG_LAUNCH_ON_BOOT
+open_webserver_port=$YNH_APP_ARG_OPEN_WEBSERVER_PORT
+app=$YNH_APP_INSTANCE_NAME
 
-app=kodi
+#=================================================
+# GLOBAL VARS
+#=================================================
+arch=$(uname -m)
 final_path=/var/www/$app
+chorus2_package="https://github.com/xbmc/chorus2/releases/download/2.4.4/webinterface.default.2.4.4.zip"
+
+
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
 # Normalize the url path syntax
@@ -34,41 +42,50 @@ ynh_webpath_available $domain $path_url
 # Register (book) web path
 ynh_webpath_register $app $domain $path_url
 
+
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
 ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app final_path $final_path
 ynh_app_setting_set $app launch_on_boot $launch_on_boot
+ynh_app_setting_set $app open_webserver_port $open_webserver_port
+
 
 #=================================================
 # CREATE KODI USER
 #=================================================
-sudo mkdir /home/$app
-ynh_system_user_create "$app" "/home/$app"
+# sudo mkdir /home/$app
+ynh_system_user_create $app $final_path
 sudo usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input $app
 
+
+
 #=================================================
-# ADD SYSTEMD SCRIPT (SERVICE)
+# ADD SYSTEMD CONFIG
 #=================================================
-sed -i "s@#KODIUSER#@${app}@g" ../conf/kodi.service
-sed -i "s@#KODIGROUP#@${app}@g" ../conf/kodi.service
-sudo cp ../conf/kodi.service /etc/systemd/system/kodi.service
-sudo systemctl daemon-reload
+ynh_add_systemd_config
+
+if [ $launch_on_boot -eq 0 ]
+then
+    sudo systemctl disable $app
+fi
+
+
 
 #=================================================
 # INSTALL DEPENDENCIES AND KODI
 #=================================================
-arch=$(uname -m)
 if [[ $arch != arm*  ]]; then
     sudo cp ../conf/kodi.list /etc/apt/sources.list.d/${app}.list
-fi
-ynh_package_update
-if [[ $arch == arm*  ]]; then
-    ynh_package_install xserver-xorg-legacy xorg dbus-x11 kodi
+    ynh_package_update
+    ynh_package_install xorg xinit dbus-x11 kodi
 else
-	ynh_package_install xorg xinit dbus-x11 kodi
+	ynh_package_install xserver-xorg-legacy xorg dbus-x11 kodi
+
 fi
+
+
 
 #=================================================
 # X11 SETTINGS
@@ -76,24 +93,32 @@ fi
 sudo sed -i 's/allowed_users=console/allowed_users=anybody/' /etc/X11/Xwrapper.config
 
 
+
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
+yunohost service add $app --log "$final_path/.kodi/temp/kodi.log"
 
-yunohost service add $app --log "/home/$app/.kodi/temp/kodi.log"
+
 
 #=================================================
 # CONTROL WEB INTERFACE
 #=================================================
+sudo mkdir -p $final_path/.kodi/userdata/
+sudo cp ../conf/advancedsettings.xml $final_path/.kodi/userdata/advancedsettings.xml
+sudo chown -R $app:$app $final_path
+
 if [[ $arch != arm*  ]]; then
-    sudo wget "https://github.com/xbmc/chorus2/releases/download/2.4.4/webinterface.default.2.4.4.zip" -P /tmp
-    sudo unzip "/tmp/webinterface.default.2.4.4.zip" -d /tmp/
-    sudo mkdir -p /home/kodi/.kodi/addons/
-    sudo mv /tmp/webinterface.default/ /home/kodi/.kodi/addons/webinterface.chorus2/
+    sudo wget $chorus2_package -P /tmp
+    sudo unzip /tmp/webinterface.default.2.4.4.zip -d /tmp/
+    sudo mkdir -p $final_path/.kodi/addons/
+    sudo mv /tmp/webinterface.default/ $final_path/.kodi/addons/webinterface.chorus2/
 fi
-sudo mkdir -p /home/$app/.kodi/userdata/
-sudo cp ../conf/advancedsettings.xml /home/$app/.kodi/userdata/advancedsettings.xml
-sudo chown -R $app:$app /home/$app
+
+if [ $open_webserver_port -eq 1 ]
+then
+    yunohost firewall allow --no-upnp TCP 8080 2>&1
+fi
 
 
 #=================================================
@@ -102,10 +127,9 @@ sudo chown -R $app:$app /home/$app
 ynh_add_nginx_config
 
 ynh_app_setting_set $app protected_uris "/"
+
 domainregex=$(echo "$domain" | sed 's/-/\%&/g')
-
 ynh_app_setting_set $app skipped_regex "$domainregex/jsonrpc.*$,$domainregex/image.*$"
-
 
 # Reload SSOwat config
 yunohost app ssowatconf
@@ -114,15 +138,11 @@ yunohost app ssowatconf
 systemctl reload nginx
 
 
-#=================================================
-# LAUNCH KODI AT STARTUP?
-#=================================================
-if [ $launch_on_boot -eq 1 ]
-then
-    sudo systemctl enable $app
-fi
 
 #=================================================
 # START KODI
 #=================================================
 sudo systemctl start $app
+
+
+

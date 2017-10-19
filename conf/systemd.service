@@ -9,8 +9,8 @@ After = systemd-user-sessions.service network.target sound.target
 # Wants = mysql.service
 
 [Service]
-User = #KODIUSER#
-Group = #KODIGROUP#
+User = __APP__
+Group = __APP__
 Type = simple
 #PAMName = login # you might want to try this one, did not work on all systems
 ExecStart = /usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi-standalone -- :0 -nolisten tcp vt7
