@@ -14,11 +14,11 @@ source /usr/share/yunohost/helpers
 # LOAD SETTINGS
 #=================================================
 app=$YNH_APP_INSTANCE_NAME
-
-domain=$(ynh_app_setting_get $app domain)
-final_path=$(ynh_app_setting_get $app final_path)
-launch_on_boot=$(ynh_app_setting_get $app launch_on_boot)
-open_webserver_port=$(ynh_app_setting_get $app open_webserver_port)
+domain=$(ynh_app_setting_get "$app" domain)
+path_url=$(ynh_app_setting_get "$app" path)
+final_path=$(ynh_app_setting_get "$app" final_path)
+launch_on_boot=$(ynh_app_setting_get "$app" launch_on_boot)
+open_webserver_port=$(ynh_app_setting_get "$app" open_webserver_port)
 
 #=================================================
 # GLOBAL VARS
@@ -34,41 +34,36 @@ arch=$(uname -m)
 ynh_remove_systemd_config
 
 
-
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
 ynh_remove_nginx_config
 
 
-
 #=================================================
 # CLOSE WEB SERVER PORT
 #=================================================
-if [ $open_webserver_port -eq 1 ]
+if [ "$open_webserver_port" -eq 1 ]
 then
     yunohost firewall disallow TCP 8080 2>&1
 fi
 
 
-
 #=================================================
 # REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
-if yunohost service status | grep -q $app
+if yunohost service status | grep -q "$app"
 then
 	echo "Remove $app service"
-	yunohost service remove $app
+	yunohost service remove "$app"
 fi
 sudo systemctl daemon-reload
-
 
 
 #=================================================
 # X11 SETTINGS
 #=================================================
 sudo sed -i 's/allowed_users=anybody/allowed_users=console/' /etc/X11/Xwrapper.config
-
 
 
 #=================================================
@@ -83,14 +78,6 @@ else
 fi
 
 
-
-#=================================================
-# REMOVE SYSTEMD CONFIG
-#=================================================
-ynh_remove_systemd_config
-
-
-
 #=================================================
 # REMOVE APP MAIN DIR
 #=================================================
@@ -98,11 +85,7 @@ ynh_remove_systemd_config
 ynh_secure_remove "$final_path"
 
 
-
 #=================================================
 # REMOVE KODI USER
 #=================================================
 ynh_system_user_delete "$app"
-
-
-
