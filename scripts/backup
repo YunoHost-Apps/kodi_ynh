@@ -11,45 +11,50 @@ if [ ! -e _common.sh ]; then
 	cp ../settings/scripts/_common.sh ./_common.sh
 	chmod a+rx _common.sh
 fi
+
 source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
-
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
 #=================================================
 # LOAD SETTINGS
 #=================================================
-
 app=$YNH_APP_INSTANCE_NAME
-
-domain=$(ynh_app_setting_get $app domain)
-final_path=$(ynh_app_setting_get $app final_path)
-launch_on_boot=$(ynh_app_setting_get $app launch_on_boot)
-open_webserver_port=$(ynh_app_setting_get $app open_webserver_port)
+domain=$(ynh_app_setting_get "$app" domain)
+path_url=$(ynh_app_setting_get "$app" path)
+final_path=$(ynh_app_setting_get "$app" final_path)
+launch_on_boot=$(ynh_app_setting_get "$app" launch_on_boot)
+open_webserver_port=$(ynh_app_setting_get "$app" open_webserver_port)
 
 #=================================================
 # STANDARD BACKUP STEPS
 #=================================================
 # BACKUP THE APP MAIN DIR
 #=================================================
-
 ynh_backup "$final_path"
 
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
-
 ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 
 #=================================================
 # BACKUP SYSTEMD
 #=================================================
-
 ynh_backup "/etc/systemd/system/$app.service"
+
+
+#=================================================
+# BACKUP SOURCE FILE
+#=================================================
+if [ -f "/etc/apt/sources.list.d/${app}.list" ] ; then
+	ynh_backup "/etc/apt/sources.list.d/${app}.list"
+fi
+

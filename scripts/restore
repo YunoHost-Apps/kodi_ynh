@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# MEMO TO TEST THIS SCRIPT
+# yunohost backup create --ignore-system --apps kodi
+# yunohost app remove kodi
+# yunohost backup restore backup.tar
+
 #=================================================
 # GENERIC START
 #=================================================
@@ -14,91 +19,122 @@ fi
 source _common.sh
 source /usr/share/yunohost/helpers
 
+
+#=================================================
+# GLOBAL VARS
+#=================================================
+arch=$(uname -m)
+
+
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
-
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
+
 
 #=================================================
 # LOAD SETTINGS
 #=================================================
-
 app=$YNH_APP_INSTANCE_NAME
-
-domain=$(ynh_app_setting_get $app domain)
-final_path=$(ynh_app_setting_get $app final_path)
-launch_on_boot=$(ynh_app_setting_get $app launch_on_boot)
-open_webserver_port=$(ynh_app_setting_get $app open_webserver_port)
+domain=$(ynh_app_setting_get "$app" domain)
+path_url=$(ynh_app_setting_get "$app" path)
+final_path=$(ynh_app_setting_get "$app" final_path)
+launch_on_boot=$(ynh_app_setting_get "$app" launch_on_boot)
+open_webserver_port=$(ynh_app_setting_get "$app" open_webserver_port)
 
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
-
-ynh_webpath_available $domain $path_url \
+ynh_webpath_available "$domain" "$path_url" \
 	|| ynh_die "Path not available: ${domain}${path_url}"
-test ! -d $final_path \
+test ! -d "$final_path" \
 	|| ynh_die "There is already a directory: $final_path "
 
 
 #=================================================
-# STANDARD RESTORATION STEPS
+# CREATE KODI USER
 #=================================================
-# RESTORE THE NGINX CONFIGURATION
-#=================================================
-
-ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_system_user_create "$app" "$final_path"
+sudo mkdir "$final_path"
+sudo chown -R "$app":"$app" "$final_path"
+sudo usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 
 
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
-
 ynh_restore_file "$final_path"
-
-
-
-#=================================================
-# RECREATE THE DEDICATED USER
-#=================================================
-
-# Create the dedicated user (if not existing)
-ynh_system_user_create $app
-
-
-#=================================================
-# RESTORE USER RIGHTS
-#=================================================
-
 # Restore permissions on app files
-chown -R $app:$app $final_path
-
+chown -R "$app":"$app" "$final_path"
 
 
 #=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
+# RESTORE THE NGINX CONFIGURATION
 #=================================================
-yunohost service add $app --log "$final_path/.kodi/temp/kodi.log"
+ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 
 #=================================================
 # RESTORE SYSTEMD
 #=================================================
 ynh_restore_file "/etc/systemd/system/$app.service"
-if [ $launch_on_boot -eq 0 ]
+
+
+#=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+yunohost service add "$app" --log "$final_path/.kodi/temp/kodi.log"
+
+
+#=================================================
+# RESTORE LAUNCH ON BOOT
+#=================================================
+if [ "$launch_on_boot" -eq 0 ]
 then
-    sudo systemctl disable $app
+    sudo systemctl disable "$app"
 else
-	systemctl enable $app.service
+	systemctl enable "$app".service
 fi
 
 
 #=================================================
-# GENERIC FINALIZATION
+# INSTALL DEPENDENCIES AND KODI
 #=================================================
-# RELOAD NGINX AND PHP-FPM
+if [[ $arch != arm*  ]]; then
+    ynh_restore_file "/etc/apt/sources.list.d/${app}.list"
+    ynh_package_update
+    ynh_package_install xorg xinit dbus-x11 kodi
+else
+    ynh_package_update
+	ynh_package_install xserver-xorg-legacy xorg dbus-x11 kodi
+fi
+
+
 #=================================================
-systemctl reload php5-fpm
+# X11 SETTINGS
+#=================================================
+sudo sed -i 's/allowed_users=console/allowed_users=anybody/' /etc/X11/Xwrapper.config
+
+
+#=================================================
+# CONTROL WEB INTERFACE
+#=================================================
+if [ "$open_webserver_port" -eq 1 ]
+then
+    yunohost firewall allow --no-upnp TCP 8080 2>&1
+fi
+
+
+# Reload SSOwat config
+yunohost app ssowatconf
+
+# Reload Nginx
 systemctl reload nginx
+
+
+#=================================================
+# START KODI
+#=================================================
+sudo systemctl start "$app"
