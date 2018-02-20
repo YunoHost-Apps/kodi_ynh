@@ -1,4 +1,4 @@
 # kodi repos
 # this package is provided by the deb multimedia repo
 # remember: those packages are not supported by team kodi
-deb ftp://mirrors.ircam.fr/pub/deb-multimedia/ jessie-backports main
+deb http://www.deb-multimedia.org/ oldstable-backports main
