@@ -1,4 +1,4 @@
 # kodi repos
-# starting with debian jessie, debian provides kodi via its backports repository
+# this package is provided by the deb multimedia repo
 # remember: those packages are not supported by team kodi
-deb http://http.debian.net/debian jessie-backports main
+deb ftp://mirrors.ircam.fr/pub/deb-multimedia/ jessie-backports main
