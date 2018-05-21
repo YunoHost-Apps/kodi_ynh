@@ -77,15 +77,17 @@ fi
 #=================================================
 # INSTALL DEPENDENCIES AND KODI
 #=================================================
-if [[ $arch != arm*  ]]; then
-    cp ../conf/kodi.list "/etc/apt/sources.list.d/${app}.list"
-    ynh_package_update
-    ynh_package_install xorg xinit dbus-x11 kodi
+dependencies=""
+
+if [[ "$arch" != arm*  ]]; then
+	cp ../conf/kodi.list "/etc/apt/sources.list.d/${app}.list"
+    	dependencies="xorg xinit dbus-x11 kodi"
 else
-    ynh_package_update
-	ynh_package_install xserver-xorg-legacy xorg dbus-x11 kodi
+	dependencies="xserver-xorg-legacy xorg dbus-x11 kodi"
 fi
 
+ynh_package_update
+ynh_install_app_dependencies "$dependencies"
 
 #=================================================
 # X11 SETTINGS

@@ -68,14 +68,11 @@ ynh_replace_string "allowed_users=anybody" "allowed_users=console" /etc/X11/Xwra
 #=================================================
 # REMOVE DEPENDENCIES AND KODI
 #=================================================
-if [[ $arch != arm*  ]]; then
-    ynh_package_remove xorg xinit dbus-x11 kodi
-    ynh_secure_remove "/etc/apt/sources.list.d/${app}.list"
-    ynh_package_update
-else
-	ynh_package_remove xserver-xorg-legacy xorg dbus-x11 kodi
+if [[ "$arch" != arm*  ]]; then
+	ynh_secure_remove "/etc/apt/sources.list.d/${app}.list"
 fi
 
+ynh_remove_app_dependencies
 
 #=================================================
 # REMOVE APP MAIN DIR
