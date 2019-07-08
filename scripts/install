@@ -78,7 +78,6 @@ fi
 # INSTALL DEPENDENCIES AND KODI
 #=================================================
 if [[ $arch != arm*  ]]; then
-    sudo cp ../conf/kodi.list "/etc/apt/sources.list.d/${app}.list"
     ynh_package_update
     ynh_package_install xorg xinit dbus-x11 kodi
 else
