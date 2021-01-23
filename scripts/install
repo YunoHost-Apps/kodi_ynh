@@ -76,15 +76,11 @@ fi
 #=================================================
 # INSTALL DEPENDENCIES AND KODI
 #=================================================
-dependencies=""
 if [[ $arch != arm*  ]]; then
-    dependencies = "xorg xinit dbus-x11 kodi"
+    ynh_install_app_dependencies "xorg xinit dbus-x11 kodi"
 else
-	dependencies = "xserver-xorg-legacy xorg dbus-x11 kodi"
+	ynh_install_app_dependencies "xserver-xorg-legacy xorg dbus-x11 kodi"
 fi
-
-ynh_package_update
-ynh_install_app_dependencies "$dependencies"
 
 #=================================================
 # X11 SETTINGS
