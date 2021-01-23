@@ -57,14 +57,13 @@ then
 	echo "Remove $app service"
 	yunohost service remove "$app"
 fi
-sudo systemctl daemon-reload
+systemctl daemon-reload
 
 
 #=================================================
 # X11 SETTINGS
 #=================================================
-sudo sed -i 's/allowed_users=anybody/allowed_users=console/' /etc/X11/Xwrapper.config
-
+ynh_replace_string "allowed_users=anybody" "allowed_users=console" /etc/X11/Xwrapper.config
 
 #=================================================
 # REMOVE DEPENDENCIES AND KODI

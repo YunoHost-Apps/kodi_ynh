@@ -58,9 +58,9 @@ ynh_app_setting_set "$app" open_webserver_port "$open_webserver_port"
 # CREATE KODI USER
 #=================================================
 ynh_system_user_create "$app" "$final_path"
-sudo mkdir "$final_path"
-sudo chown -R "$app":"$app" "$final_path"
-sudo usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
+mkdir "$final_path"
+chown -R "$app":"$app" "$final_path"
+usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 
 
 #=================================================
@@ -70,7 +70,7 @@ ynh_add_systemd_config
 
 if [ "$launch_on_boot" -eq 0 ]
 then
-    sudo systemctl disable "$app"
+    systemctl disable "$app"
 fi
 
 
@@ -78,6 +78,7 @@ fi
 # INSTALL DEPENDENCIES AND KODI
 #=================================================
 if [[ $arch != arm*  ]]; then
+    cp ../conf/kodi.list "/etc/apt/sources.list.d/${app}.list"
     ynh_package_update
     ynh_package_install xorg xinit dbus-x11 kodi
 else
@@ -89,7 +90,7 @@ fi
 #=================================================
 # X11 SETTINGS
 #=================================================
-sudo sed -i 's/allowed_users=console/allowed_users=anybody/' /etc/X11/Xwrapper.config
+ynh_replace_string "allowed_users=console" "allowed_users=anybody" /etc/X11/Xwrapper.config
 
 
 #=================================================
@@ -101,17 +102,17 @@ yunohost service add "$app" --log "$final_path/.kodi/temp/kodi.log"
 #=================================================
 # CONTROL WEB INTERFACE
 #=================================================
-sudo mkdir -p "$final_path/.kodi/userdata/"
-sudo cp ../conf/advancedsettings.xml "$final_path/.kodi/userdata/advancedsettings.xml"
+mkdir -p "$final_path/.kodi/userdata/"
+cp ../conf/advancedsettings.xml "$final_path/.kodi/userdata/advancedsettings.xml"
 
 if [[ $arch != arm*  ]]; then
-    sudo wget -q $chorus2_package -P /tmp
-    sudo unzip /tmp/webinterface.default.2.4.4.zip -d /tmp/
-    sudo mkdir -p "$final_path/.kodi/addons/"
-    sudo mv /tmp/webinterface.default/ "$final_path/.kodi/addons/webinterface.chorus2/"
+    wget -q $chorus2_package -P /tmp
+    unzip /tmp/webinterface.default.2.4.4.zip -d /tmp/
+    mkdir -p "$final_path/.kodi/addons/"
+    mv /tmp/webinterface.default/ "$final_path/.kodi/addons/webinterface.chorus2/"
 fi
 
-sudo chown -R "$app":"$app" "$final_path"
+chown -R "$app":"$app" "$final_path"
 
 if [ "$open_webserver_port" -eq 1 ]
 then
@@ -124,7 +125,7 @@ fi
 #=================================================
 finalnginxconf="/etc/nginx/conf.d/$domain.d/$app.conf"
 ynh_backup_if_checksum_is_different "$finalnginxconf"
-sudo cp ../conf/nginx.conf "$finalnginxconf"
+cp ../conf/nginx.conf "$finalnginxconf"
 
 if [ "$path_url" == "/" ]; then
     ynh_replace_string "__PATH__/" "/" "$finalnginxconf"
@@ -147,4 +148,4 @@ systemctl reload nginx
 #=================================================
 # START KODI
 #=================================================
-sudo systemctl start "$app"
+systemctl start "$app"
