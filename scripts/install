@@ -100,6 +100,7 @@ yunohost service add "$app" --log "$final_path/.kodi/temp/kodi.log"
 mkdir -p "$final_path/.kodi/userdata/"
 cp ../conf/advancedsettings.xml "$final_path/.kodi/userdata/advancedsettings.xml"
 
+mkdir -p "$final_path/.kodi/addons/"
 if [[ $arch != arm*  ]]; then
      ynh_setup_source --dest_dir="$final_path/.kodi/addons/" --source_id="arm-chorus2" 
 fi
