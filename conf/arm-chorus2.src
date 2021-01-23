@@ -1,0 +1,6 @@
+SOURCE_URL=https://github.com/xbmc/chorus2/releases/download/2.4.4/webinterface.default.2.4.4.zip
+SOURCE_SUM=efa76c18a155f263183df9eaa345e859f017000da064c35ec9809ff5c09e31c4
+SOURCE_SUM_PRG=sha256sum
+SOURCE_FORMAT=zip
+SOURCE_IN_SUBDIR=true
+SOURCE_FILENAME= 

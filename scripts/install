@@ -29,7 +29,6 @@ open_webserver_port=$YNH_APP_ARG_OPEN_WEBSERVER_PORT
 #=================================================
 arch=$(uname -m)
 final_path=/var/www/$app
-chorus2_package="https://github.com/xbmc/chorus2/releases/download/2.4.4/webinterface.default.2.4.4.zip"
 
 
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
@@ -77,15 +76,16 @@ fi
 #=================================================
 # INSTALL DEPENDENCIES AND KODI
 #=================================================
+dependencies=""
 if [[ $arch != arm*  ]]; then
     cp ../conf/kodi.list "/etc/apt/sources.list.d/${app}.list"
-    ynh_package_update
-    ynh_package_install xorg xinit dbus-x11 kodi
+    dependencies = "xorg xinit dbus-x11 kodi"
 else
-    ynh_package_update
-	ynh_package_install xserver-xorg-legacy xorg dbus-x11 kodi
+	dependencies = "xserver-xorg-legacy xorg dbus-x11 kodi"
 fi
 
+ynh_package_update
+ynh_install_app_dependencies "$dependencies"
 
 #=================================================
 # X11 SETTINGS
@@ -106,10 +106,7 @@ mkdir -p "$final_path/.kodi/userdata/"
 cp ../conf/advancedsettings.xml "$final_path/.kodi/userdata/advancedsettings.xml"
 
 if [[ $arch != arm*  ]]; then
-    wget -q $chorus2_package -P /tmp
-    unzip /tmp/webinterface.default.2.4.4.zip -d /tmp/
-    mkdir -p "$final_path/.kodi/addons/"
-    mv /tmp/webinterface.default/ "$final_path/.kodi/addons/webinterface.chorus2/"
+     ynh_setup_source "$final_path/.kodi/addons/" "arm-chorus2" 
 fi
 
 chown -R "$app":"$app" "$final_path"
