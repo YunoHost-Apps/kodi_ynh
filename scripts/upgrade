@@ -80,7 +80,6 @@ ynh_add_systemd_config
 #=================================================
 dependencies=""
 if [[ $arch != arm*  ]]; then
-    cp ../conf/kodi.list "/etc/apt/sources.list.d/${app}.list"
     dependencies = "xorg xinit dbus-x11 kodi"
 else
 	dependencies = "xserver-xorg-legacy xorg dbus-x11 kodi"
