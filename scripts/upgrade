@@ -8,134 +8,155 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
-
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_script_progression --message="Loading installation settings..."
+
 app=$YNH_APP_INSTANCE_NAME
-domain=$(ynh_app_setting_get "$app" domain)
-path_url=$(ynh_app_setting_get "$app" path)
-final_path=$(ynh_app_setting_get "$app" final_path)
-launch_on_boot=$(ynh_app_setting_get "$app" launch_on_boot)
-open_webserver_port=$(ynh_app_setting_get "$app" open_webserver_port)
 
-
-#=================================================
-# GLOBAL VARS
-#=================================================
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+path_url=$(ynh_app_setting_get --app=$app --key=path)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+launch_on_boot=$(ynh_app_setting_get --app=$app --key=launch_on_boot)
+open_webserver_port=$(ynh_app_setting_get --app=$app --key=open_webserver_port)
 arch=$(uname -m)
 
+#=================================================
+# CHECK VERSION
+#=================================================
+ynh_script_progression --message="Checking version..."
+
+upgrade_type=$(ynh_check_app_version_changed)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
+ynh_script_progression --message="Ensuring downward compatibility..."
+
 # Fix launch_on_boot as a boolean value
 if [ "$launch_on_boot" = "Yes" ]; then
-	ynh_app_setting_set "$app" launch_on_boot 1
+	ynh_app_setting_set --app=$app --key=launch_on_boot --value=1
 	launch_on_boot=1
 elif [ "$launch_on_boot" = "No" ]; then
-	ynh_app_setting_set "$app" launch_on_boot 0
+	ynh_app_setting_set --app=$app --key=launch_on_boot --value=0
 	launch_on_boot=0
 fi
 
 # Fix launch_on_boot as a boolean value
 if [ "$open_webserver_port" = "Yes" ]; then
-	ynh_app_setting_set "$app" open_webserver_port 1
+	ynh_app_setting_set --app=$app --key=open_webserver_port --value=1
 	open_webserver_port=1
 elif [ "$open_webserver_port" = "No" ]; then
-	ynh_app_setting_set "$app" open_webserver_port 0
+	ynh_app_setting_set --app=$app --key=open_webserver_port --value=0
 	open_webserver_port=0
 fi
 
+# Cleaning legacy permissions
+if ynh_legacy_permissions_exists; then
+	ynh_legacy_permissions_delete_all
 
-#=================================================
-# STOP KODI
-#=================================================
-systemctl stop "$app"
+	ynh_app_setting_delete --app=$app --key=is_public
+fi
 
+if ! ynh_permission_exists --permission="admin"; then
+	# Create the required permissions
+	ynh_permission_create --permission="admin" --url="/admin" --allowed=$admin
+fi
 
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..."
+
 # Backup the current version of the app
 ynh_backup_before_upgrade
 ynh_clean_setup () {
-	# restore it if the upgrade fails
+	# Restore it if the upgrade fails
 	ynh_restore_upgradebackup
 }
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
+# STOP SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Stopping a systemd service..."
 
+ynh_systemd_action --service_name=$app --action="stop"
 
 #=================================================
-# REPLACE SYSTEMD CONFIG
+# NGINX CONFIGURATION
 #=================================================
+ynh_script_progression --message="Upgrading NGINX web server configuration..."
+
+# Create a dedicated NGINX config
+ynh_add_nginx_config
+
+#=================================================
+# UPGRADE DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Upgrading dependencies..."
+
+if [[ $arch != arm*  ]]; then
+    ynh_install_app_dependencies $pkg_dependencies
+else
+	ynh_install_app_dependencies $arm_pkg_dependencies
+fi
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Making sure dedicated system user exists..."
+
+# Create a dedicated user (if not existing)
+ynh_system_user_create --username=$app --home_dir=$final_path
+
+#=================================================
+# SETUP SYSTEMD
+#=================================================
+ynh_script_progression --message="Upgrading systemd configuration..."
+
+# Create a dedicated systemd config
 ynh_add_systemd_config
 
 
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
+ynh_script_progression --message="Securing files and directories..."
+
+# Set permissions on app files
+chown -R $app:$app $final_path
+usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 
 #=================================================
-# INSTALL DEPENDENCIES AND KODI
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-dependencies=""
-if [[ $arch != arm*  ]]; then
-    dependencies = "xorg xinit dbus-x11 kodi"
-else
-	dependencies = "xserver-xorg-legacy xorg dbus-x11 kodi"
-fi
+ynh_script_progression --message="Integrating service in YunoHost..."
 
-ynh_package_update
-ynh_install_app_dependencies "$dependencies"
-
+yunohost service add $app --log="/var/log/$app/$app.log"
 
 #=================================================
-# X11 SETTINGS
+# START SYSTEMD SERVICE
 #=================================================
-ynh_replace_string "allowed_users=console" "allowed_users=anybody" /etc/X11/Xwrapper.config
+ynh_script_progression --message="Starting a systemd service..."
 
-#=================================================
-# CONTROL WEB INTERFACE
-#=================================================
-if [ $open_webserver_port -eq 1 ]
-then
-    yunohost firewall allow --no-upnp TCP 8080 2>&1
-fi
-
+ynh_systemd_action --service_name=$app --action="start"
 
 #=================================================
-# NGINX
+# RELOAD NGINX
 #=================================================
-finalnginxconf="/etc/nginx/conf.d/$domain.d/$app.conf"
-ynh_backup_if_checksum_is_different "$finalnginxconf"
-cp ../conf/nginx.conf "$finalnginxconf"
+ynh_script_progression --message="Reloading NGINX web server..."
 
-if [ "$path_url" == "/" ]; then
-    ynh_replace_string "__PATH__/" "/" "$finalnginxconf"
-else
-    ynh_replace_string "__PATH__" "$path_url" "$finalnginxconf"
-fi
-
-ynh_app_setting_set "$app" protected_uris "/"
-
-domainregex=$(echo "$domain" | sed 's/-/\%&/g')
-ynh_app_setting_set "$app" skipped_regex "$domainregex/jsonrpc.*$,$domainregex/image.*$"
-
-# Reload SSOwat config
-yunohost app ssowatconf
-
-# Reload Nginx
-systemctl reload nginx
-
-
+ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
-# START KODI
+# END OF SCRIPT
 #=================================================
-systemctl start "$app"
 
-
-
-
-
-
+ynh_script_progression --message="Upgrade of $app completed"
