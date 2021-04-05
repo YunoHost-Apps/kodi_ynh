@@ -25,6 +25,7 @@ ynh_abort_if_errors
 
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
+is_public=1
 launch_on_boot=$YNH_APP_ARG_LAUNCH_ON_BOOT
 open_webserver_port=$YNH_APP_ARG_OPEN_WEBSERVER_PORT
 arch=$(uname -m)
