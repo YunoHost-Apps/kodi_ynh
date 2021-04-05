@@ -185,14 +185,6 @@ then
 	ynh_permission_update --permission="main" --add="visitors"
 fi
 
-# Only the admin can access the admin panel of the app (if the app has an admin panel)
-ynh_permission_create --permission="admin" --url="/admin" --allowed=$admin
-
-# Everyone can access to the api part
-# We don't want to display the tile in the sso so we put --show_tile="false"
-# And we don't want that the YunoHost Admin can remove visitors group to this permission, so we put --protected="true"
-ynh_permission_create --permission="api" --url "/api" --allowed="visitors" --show_tile="false" --protected="true"
-
 #=================================================
 # RELOAD NGINX
 #=================================================
