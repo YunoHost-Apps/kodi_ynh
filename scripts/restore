@@ -126,7 +126,7 @@ if [ "$launch_on_boot" -eq 0 ]
 then
     systemctl disable "$app"
 else
-	systemctl enable "$app".service
+	systemctl enable "$app".service --quiet
 fi
 
 #=================================================
