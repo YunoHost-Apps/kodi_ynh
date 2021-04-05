@@ -135,7 +135,7 @@ ynh_add_systemd_config
 
 if [ "$launch_on_boot" -eq 0 ]
 then
-    systemctl disable "$app"
+    systemctl disable "$app" --quiet
 fi
 
 #=================================================
