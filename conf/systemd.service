@@ -13,7 +13,7 @@ Type=simple
 User=__APP__
 Group=__APP__
 #PAMName=login # you might want to try this one, did not work on all systems
-ExecStart=/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi-standalone -- :0 -nolisten tcp vt7
+ExecStart=/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi -- :0 -nolisten tcp vt7
 Restart=on-abort
 RestartSec = 5
 

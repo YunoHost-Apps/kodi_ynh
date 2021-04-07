@@ -62,7 +62,7 @@ ynh_app_setting_set --app=$app --key=open_webserver_port --value=$open_webserver
 ynh_script_progression --message="Finding an available port..."
 
 # Find an available port
-port=8080
+port=$(ynh_find_port --port=8095)
 ynh_app_setting_set --app=$app --key=port --value=$port
 
 # Optional: Expose this port publicly
@@ -81,10 +81,14 @@ fi
 #=================================================
 ynh_script_progression --message="Installing dependencies..."
 
+tmpdir=$(mktemp -d)
+ynh_setup_source --dest_dir="$tmpdir" --source_id="deb-multimedia-keyring"
+sudo dpkg -i "$tmpdir/deb-multimedia-keyring.deb"
+
 if [[ $arch != arm*  ]]; then
-    ynh_install_app_dependencies $pkg_dependencies
+	ynh_install_extra_app_dependencies --repo="deb https://www.deb-multimedia.org/ buster main non-free" --package="$pkg_dependencies"
 else
-	ynh_install_app_dependencies $arm_pkg_dependencies
+	ynh_install_extra_app_dependencies --repo="deb https://www.deb-multimedia.org/ buster main non-free" --package="$arm_pkg_dependencies"
 fi
 
 #=================================================
@@ -110,7 +114,7 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 ynh_script_progression --message="Configuring X11..."
 
-ynh_replace_string "allowed_users=console" "allowed_users=anybody" /etc/X11/Xwrapper.config
+ynh_replace_string --match_string="allowed_users=console" --replace_string="allowed_users=anybody" --target_file="/etc/X11/Xwrapper.config"
 
 #=================================================
 # CONFUGURING KODI
@@ -118,7 +122,7 @@ ynh_replace_string "allowed_users=console" "allowed_users=anybody" /etc/X11/Xwra
 ynh_script_progression --message="Configuring Kodi..."
 
 mkdir -p "$final_path/.kodi/userdata/"
-cp ../conf/advancedsettings.xml "$final_path/.kodi/userdata/advancedsettings.xml"
+ynh_add_config --template="../conf/advancedsettings.xml" --destination="$final_path/.kodi/userdata/advancedsettings.xml"
 
 mkdir -p "$final_path/.kodi/addons/"
 if [[ $arch != arm*  ]]; then
