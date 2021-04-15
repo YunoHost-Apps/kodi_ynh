@@ -2,6 +2,7 @@
     <services>
         <esallinterfaces>true</esallinterfaces>
         <webserver>true</webserver>
+        <webserverport>__PORT__</webserverport>
         <zeroconf>true</zeroconf>
     </services>
 </advancedsettings>
