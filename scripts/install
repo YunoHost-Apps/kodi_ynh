@@ -7,6 +7,7 @@
 #=================================================
 
 source _common.sh
+source ynh_detect_arch__2
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -28,7 +29,7 @@ path_url=$YNH_APP_ARG_PATH
 is_public=1
 launch_on_boot=$YNH_APP_ARG_LAUNCH_ON_BOOT
 open_webserver_port=$YNH_APP_ARG_OPEN_WEBSERVER_PORT
-arch=$(uname -m)
+arch=$(ynh_detect_arch)
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -73,7 +74,7 @@ ynh_app_setting_set --app=$app --key=port --value=$port
 # ynh_script_progression --message="Configuring firewall..."
 if [ "$open_webserver_port" -eq 1 ]
 then
-    ynh_exec_warn_less yunohost firewall allow --no-upnp TCP $port
+	ynh_exec_warn_less yunohost firewall allow --no-upnp TCP $port
 fi
 
 #=================================================
@@ -83,7 +84,7 @@ ynh_script_progression --message="Installing dependencies..."
 
 tmpdir=$(mktemp -d)
 ynh_setup_source --dest_dir="$tmpdir" --source_id="deb-multimedia-keyring"
-sudo dpkg -i "$tmpdir/deb-multimedia-keyring.deb"
+dpkg -i "$tmpdir/deb-multimedia-keyring.deb"
 
 if [[ $arch != arm*  ]]; then
 	ynh_install_extra_app_dependencies --repo="deb https://www.deb-multimedia.org/ buster main non-free" --package="$pkg_dependencies"
@@ -92,20 +93,20 @@ else
 fi
 
 #=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Configuring NGINX web server..."
-
-# Create a dedicated NGINX config
-ynh_add_nginx_config
-
-#=================================================
 # CREATE DEDICATED USER
 #=================================================
 ynh_script_progression --message="Configuring system user..."
 
 # Create a system user
 ynh_system_user_create --username=$app --home_dir=$final_path
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Configuring NGINX web server..."
+
+# Create a dedicated NGINX config
+ynh_add_nginx_config
 
 #=================================================
 # SPECIFIC SETUP
@@ -158,7 +159,7 @@ usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add $app --log "$final_path/.kodi/temp/kodi.log"
+yunohost service add $app --log "$final_path/.kodi/temp/kodi.log" --needs_exposed_ports $port
 
 #=================================================
 # START SYSTEMD SERVICE

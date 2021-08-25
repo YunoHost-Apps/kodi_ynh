@@ -21,7 +21,6 @@ port=$(ynh_app_setting_get --app=$app --key=port)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 launch_on_boot=$(ynh_app_setting_get --app=$app --key=launch_on_boot)
 open_webserver_port=$(ynh_app_setting_get --app=$app --key=open_webserver_port)
-arch=$(uname -m)
 
 #=================================================
 # STANDARD REMOVE

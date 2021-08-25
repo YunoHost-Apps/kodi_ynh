@@ -5,7 +5,9 @@
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
+
 source _common.sh
+source ynh_detect_arch__2
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -20,7 +22,8 @@ path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 launch_on_boot=$(ynh_app_setting_get --app=$app --key=launch_on_boot)
 open_webserver_port=$(ynh_app_setting_get --app=$app --key=open_webserver_port)
-arch=$(uname -m)
+port=$(ynh_app_setting_get --app=$app --key=port)
+arch=$(ynh_detect_arch)
 
 #=================================================
 # CHECK VERSION
@@ -28,36 +31,6 @@ arch=$(uname -m)
 ynh_script_progression --message="Checking version..."
 
 upgrade_type=$(ynh_check_app_version_changed)
-
-#=================================================
-# ENSURE DOWNWARD COMPATIBILITY
-#=================================================
-ynh_script_progression --message="Ensuring downward compatibility..."
-
-# Fix launch_on_boot as a boolean value
-if [ "$launch_on_boot" = "Yes" ]; then
-	ynh_app_setting_set --app=$app --key=launch_on_boot --value=1
-	launch_on_boot=1
-elif [ "$launch_on_boot" = "No" ]; then
-	ynh_app_setting_set --app=$app --key=launch_on_boot --value=0
-	launch_on_boot=0
-fi
-
-# Fix launch_on_boot as a boolean value
-if [ "$open_webserver_port" = "Yes" ]; then
-	ynh_app_setting_set --app=$app --key=open_webserver_port --value=1
-	open_webserver_port=1
-elif [ "$open_webserver_port" = "No" ]; then
-	ynh_app_setting_set --app=$app --key=open_webserver_port --value=0
-	open_webserver_port=0
-fi
-
-# Cleaning legacy permissions
-if ynh_legacy_permissions_exists; then
-	ynh_legacy_permissions_delete_all
-
-	ynh_app_setting_delete --app=$app --key=is_public
-fi
 
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
@@ -83,6 +56,44 @@ ynh_script_progression --message="Stopping a systemd service..."
 ynh_systemd_action --service_name=$app --action="stop"
 
 #=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+ynh_script_progression --message="Ensuring downward compatibility..."
+
+# Cleaning legacy permissions
+if ynh_legacy_permissions_exists; then
+	ynh_legacy_permissions_delete_all
+
+	ynh_app_setting_delete --app=$app --key=is_public
+fi
+
+# Fix launch_on_boot as a boolean value
+if [ "$launch_on_boot" = "Yes" ]; then
+	ynh_app_setting_set --app=$app --key=launch_on_boot --value=1
+	launch_on_boot=1
+elif [ "$launch_on_boot" = "No" ]; then
+	ynh_app_setting_set --app=$app --key=launch_on_boot --value=0
+	launch_on_boot=0
+fi
+
+# Fix launch_on_boot as a boolean value
+if [ "$open_webserver_port" = "Yes" ]; then
+	ynh_app_setting_set --app=$app --key=open_webserver_port --value=1
+	open_webserver_port=1
+elif [ "$open_webserver_port" = "No" ]; then
+	ynh_app_setting_set --app=$app --key=open_webserver_port --value=0
+	open_webserver_port=0
+fi
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Making sure dedicated system user exists..."
+
+# Create a dedicated user (if not existing)
+ynh_system_user_create --username=$app --home_dir=$final_path
+
+#=================================================
 # NGINX CONFIGURATION
 #=================================================
 ynh_script_progression --message="Upgrading NGINX web server configuration..."
@@ -97,7 +108,7 @@ ynh_script_progression --message="Upgrading dependencies..."
 
 tmpdir=$(mktemp -d)
 ynh_setup_source --dest_dir="$tmpdir" --source_id="deb-multimedia-keyring"
-sudo dpkg -i "$tmpdir/deb-multimedia-keyring.deb"
+dpkg -i "$tmpdir/deb-multimedia-keyring.deb"
 
 if [[ $arch != arm*  ]]; then
 	ynh_install_extra_app_dependencies --repo="deb https://www.deb-multimedia.org/ buster main non-free" --package="$pkg_dependencies"
@@ -106,21 +117,12 @@ else
 fi
 
 #=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..."
-
-# Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir=$final_path
-
-#=================================================
 # SETUP SYSTEMD
 #=================================================
 ynh_script_progression --message="Upgrading systemd configuration..."
 
 # Create a dedicated systemd config
 ynh_add_systemd_config
-
 
 #=================================================
 # GENERIC FINALIZATION
@@ -138,7 +140,7 @@ usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add $app --log "$final_path/.kodi/temp/kodi.log"
+yunohost service add $app --log "$final_path/.kodi/temp/kodi.log" --needs_exposed_ports $port
 
 #=================================================
 # START SYSTEMD SERVICE

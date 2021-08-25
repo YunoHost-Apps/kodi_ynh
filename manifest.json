@@ -8,6 +8,12 @@
     },
     "version": "17.3~ynh1",
     "url": "https://kodi.tv",
+    "upstream": {
+        "license": "GPL-2.0",
+        "website": "https://kodi.tv",
+        "admindoc": "https://kodi.wiki/view/Main_Page",
+        "code": "https://github.com/xbmc"
+    },
     "license": "GPL-2.0",
     "maintainer": {
         "name": "Sylvain Cecchetto",

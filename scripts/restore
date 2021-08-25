@@ -8,6 +8,7 @@
 
 # Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
+source ../settings/scripts/ynh_detect_arch__2
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -23,7 +24,7 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading settings..."
+ynh_script_progression --message="Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -33,7 +34,7 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 launch_on_boot=$(ynh_app_setting_get --app=$app --key=launch_on_boot)
 open_webserver_port=$(ynh_app_setting_get --app=$app --key=open_webserver_port)
 port=$(ynh_app_setting_get --app=$app --key=port)
-arch=$(uname -m)
+arch=$(ynh_detect_arch)
 
 #=================================================
 # FIND AND OPEN A PORT
@@ -67,19 +68,19 @@ ynh_script_progression --message="Restoring the NGINX web server configuration..
 ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
-# RESTORE THE APP MAIN DIR
-#=================================================
-ynh_script_progression --message="Restoring the app main directory..."
-
-ynh_restore_file --origin_path="$final_path"
-
-#=================================================
 # RECREATE THE DEDICATED USER
 #=================================================
 ynh_script_progression --message="Recreating the dedicated system user..."
 
 # Create the dedicated user (if not existing)
 ynh_system_user_create --username=$app --home_dir=$final_path
+
+#=================================================
+# RESTORE THE APP MAIN DIR
+#=================================================
+ynh_script_progression --message="Restoring the app main directory..."
+
+ynh_restore_file --origin_path="$final_path"
 
 #=================================================
 # RESTORE USER RIGHTS
@@ -100,7 +101,7 @@ ynh_script_progression --message="Reinstalling dependencies..."
 
 tmpdir=$(mktemp -d)
 ynh_setup_source --dest_dir="$tmpdir" --source_id="deb-multimedia-keyring"
-sudo dpkg -i "$tmpdir/deb-multimedia-keyring.deb"
+dpkg -i "$tmpdir/deb-multimedia-keyring.deb"
 
 if [[ $arch != arm*  ]]; then
 	ynh_install_extra_app_dependencies --repo="deb https://www.deb-multimedia.org/ buster main non-free" --package="$pkg_dependencies"
@@ -117,18 +118,11 @@ ynh_restore_file --origin_path="/etc/systemd/system/$app.service"
 systemctl enable $app.service --quiet
 
 #=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..."
-
-yunohost service add $app --log "$final_path/.kodi/temp/kodi.log"
-
-#=================================================
 # RESTORE LAUNCH ON BOOT
 #=================================================
 if [ "$launch_on_boot" -eq 0 ]
 then
-    systemctl disable "$app"
+    systemctl disable "$app".service --quiet
 else
 	systemctl enable "$app".service --quiet
 fi
@@ -139,6 +133,13 @@ fi
 ynh_script_progression --message="Configuring X11..."
 
 ynh_replace_string "allowed_users=console" "allowed_users=anybody" /etc/X11/Xwrapper.config
+
+#=================================================
+# INTEGRATE SERVICE IN YUNOHOST
+#=================================================
+ynh_script_progression --message="Integrating service in YunoHost..."
+
+yunohost service add $app --log "$final_path/.kodi/temp/kodi.log" --needs_exposed_ports $port
 
 #=================================================
 # START SYSTEMD SERVICE
