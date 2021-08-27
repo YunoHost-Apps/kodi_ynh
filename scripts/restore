@@ -114,7 +114,7 @@ else
 fi
 
 if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
-	cp ../conf/xorg.conf /etc/X11/xorg.conf
+	cp ../settings/conf/xorg.conf /etc/X11/xorg.conf
 fi
 
 #=================================================
