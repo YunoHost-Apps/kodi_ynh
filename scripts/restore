@@ -83,16 +83,6 @@ ynh_script_progression --message="Restoring the app main directory..."
 ynh_restore_file --origin_path="$final_path"
 
 #=================================================
-# RESTORE USER RIGHTS
-#=================================================
-ynh_script_progression --message="Restoring user rights..."
-
-# Restore permissions on app files
-chown -R root: $final_path
-usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
-
-
-#=================================================
 # SPECIFIC RESTORATION
 #=================================================
 # REINSTALL DEPENDENCIES
@@ -141,6 +131,15 @@ fi
 ynh_script_progression --message="Configuring X11..."
 
 ynh_replace_string "allowed_users=console" "allowed_users=anybody" /etc/X11/Xwrapper.config
+
+#=================================================
+# RESTORE USER RIGHTS
+#=================================================
+ynh_script_progression --message="Restoring user rights..."
+
+# Restore permissions on app files
+chown -R root: $final_path
+usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 
 #=================================================
 # INTEGRATE SERVICE IN YUNOHOST
