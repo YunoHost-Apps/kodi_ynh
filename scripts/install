@@ -187,9 +187,6 @@ ynh_app_setting_set "$app" protected_uris "/"
 domainregex=$(echo "$domain" | sed 's/-/\%&/g')
 ynh_app_setting_set "$app" skipped_regex "$domainregex/jsonrpc.*$,$domainregex/image.*$"
 
-# Reload SSOwat config
-yunohost app ssowatconf
-
 # Make app public if necessary
 if [ $is_public -eq 1 ]
 then
