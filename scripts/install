@@ -159,7 +159,9 @@ fi
 ynh_script_progression --message="Securing files and directories..."
 
 # Set permissions to app files
-chown -R $app:$app $final_path
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:$app "$final_path"
 usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 
 #=================================================
