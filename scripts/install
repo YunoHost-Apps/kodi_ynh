@@ -5,140 +5,207 @@
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
+
 source _common.sh
+source ynh_detect_arch__2
 source /usr/share/yunohost/helpers
 
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
+
+ynh_clean_setup () {
+	ynh_clean_check_starting
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
-app=$YNH_APP_INSTANCE_NAME
+
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
+is_public=1
 launch_on_boot=$YNH_APP_ARG_LAUNCH_ON_BOOT
 open_webserver_port=$YNH_APP_ARG_OPEN_WEBSERVER_PORT
+arch=$(ynh_detect_arch)
 
+app=$YNH_APP_INSTANCE_NAME
 
 #=================================================
-# GLOBAL VARS
+# CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
-arch=$(uname -m)
+ynh_script_progression --message="Validating installation parameters..."
+
 final_path=/var/www/$app
-
-
-test ! -e "$final_path" || ynh_die "This path already contains a folder"
-
-# Normalize the url path syntax
-path_url=$(ynh_normalize_url_path "$path_url")
-
-# Check web path availability
-ynh_webpath_available "$domain" "$path_url"
+test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
 
 # Register (book) web path
-ynh_webpath_register "$app" "$domain" "$path_url"
-
+ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
-ynh_app_setting_set "$app" domain "$domain"
-ynh_app_setting_set "$app" path_url "$path_url"
-ynh_app_setting_set "$app" final_path "$final_path"
-ynh_app_setting_set "$app" launch_on_boot "$launch_on_boot"
-ynh_app_setting_set "$app" open_webserver_port "$open_webserver_port"
+ynh_script_progression --message="Storing installation settings..."
 
-
-#=================================================
-# CREATE KODI USER
-#=================================================
-ynh_system_user_create "$app" "$final_path"
-mkdir "$final_path"
-chown -R "$app":"$app" "$final_path"
-usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
-
+ynh_app_setting_set --app=$app --key=domain --value=$domain
+ynh_app_setting_set --app=$app --key=path --value=$path_url
+ynh_app_setting_set --app=$app --key=final_path --value=$final_path
+ynh_app_setting_set --app=$app --key=launch_on_boot --value=$launch_on_boot
+ynh_app_setting_set --app=$app --key=open_webserver_port --value=$open_webserver_port
 
 #=================================================
-# ADD SYSTEMD CONFIG
+# STANDARD MODIFICATIONS
 #=================================================
-ynh_add_systemd_config
+# FIND AND OPEN A PORT
+#=================================================
+ynh_script_progression --message="Finding an available port..."
 
-if [ "$launch_on_boot" -eq 0 ]
+# Find an available port
+port=$(ynh_find_port --port=8095)
+ynh_app_setting_set --app=$app --key=port --value=$port
+
+# Optional: Expose this port publicly
+# (N.B.: you only need to do this if the app actually needs to expose the port publicly.
+# If you do this and the app doesn't actually need you are CREATING SECURITY HOLES IN THE SERVER !)
+
+# Open the port
+# ynh_script_progression --message="Configuring firewall..."
+if [ "$open_webserver_port" -eq 1 ]
 then
-    systemctl disable "$app"
+	ynh_exec_warn_less yunohost firewall allow --no-upnp TCP $port
 fi
 
+#=================================================
+# INSTALL DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Installing dependencies..."
 
-#=================================================
-# INSTALL DEPENDENCIES AND KODI
-#=================================================
+tmpdir=$(mktemp -d)
+ynh_setup_source --dest_dir="$tmpdir" --source_id="deb-multimedia-keyring"
+dpkg -i "$tmpdir/deb-multimedia-keyring.deb"
+
+if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
+	pkg_dependencies="$pkg_dependencies $package_check_dependencies"
+fi
+
 if [[ $arch != arm*  ]]; then
-    ynh_install_app_dependencies "xorg xinit dbus-x11 kodi"
+	ynh_install_extra_app_dependencies --repo="deb https://www.deb-multimedia.org/ buster main non-free" --package="$pkg_dependencies"
 else
-	ynh_install_app_dependencies "xserver-xorg-legacy xorg dbus-x11 kodi"
+	ynh_install_extra_app_dependencies --repo="deb https://www.deb-multimedia.org/ buster main non-free" --package="$arm_pkg_dependencies"
 fi
 
+if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
+	cp ../conf/xorg.conf /etc/X11/xorg.conf
+fi
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Configuring system user..."
+
+# Create a system user
+ynh_system_user_create --username=$app --home_dir=$final_path
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Configuring NGINX web server..."
+
+# Create a dedicated NGINX config
+ynh_add_nginx_config
+
+#=================================================
+# SPECIFIC SETUP
 #=================================================
 # X11 SETTINGS
 #=================================================
-ynh_replace_string "allowed_users=console" "allowed_users=anybody" /etc/X11/Xwrapper.config
+ynh_script_progression --message="Configuring X11..."
 
-
-#=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
-#=================================================
-yunohost service add "$app" --log "$final_path/.kodi/temp/kodi.log"
-
+ynh_replace_string --match_string="allowed_users=console" --replace_string="allowed_users=anybody" --target_file="/etc/X11/Xwrapper.config"
 
 #=================================================
-# CONTROL WEB INTERFACE
+# CONFUGURING KODI
 #=================================================
+ynh_script_progression --message="Configuring Kodi..."
+
 mkdir -p "$final_path/.kodi/userdata/"
-cp ../conf/advancedsettings.xml "$final_path/.kodi/userdata/advancedsettings.xml"
+ynh_add_config --template="../conf/advancedsettings.xml" --destination="$final_path/.kodi/userdata/advancedsettings.xml"
 
 mkdir -p "$final_path/.kodi/addons/"
 if [[ $arch != arm*  ]]; then
      ynh_setup_source --dest_dir="$final_path/.kodi/addons/" --source_id="arm-chorus2" 
 fi
 
-chown -R "$app":"$app" "$final_path"
+#=================================================
+# SETUP SYSTEMD
+#=================================================
+ynh_script_progression --message="Configuring a systemd service..."
 
-if [ "$open_webserver_port" -eq 1 ]
+# Create a dedicated systemd config
+ynh_add_systemd_config
+
+if [ "$launch_on_boot" -eq 0 ]
 then
-    yunohost firewall allow --no-upnp TCP 8080 2>&1
+    systemctl disable "$app" --quiet
 fi
 
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
+ynh_script_progression --message="Securing files and directories..."
+
+# Set permissions to app files
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:$app "$final_path"
+usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 
 #=================================================
-# NGINX
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-finalnginxconf="/etc/nginx/conf.d/$domain.d/$app.conf"
-ynh_backup_if_checksum_is_different "$finalnginxconf"
-cp ../conf/nginx.conf "$finalnginxconf"
+ynh_script_progression --message="Integrating service in YunoHost..."
 
-if [ "$path_url" == "/" ]; then
-    ynh_replace_string "__PATH__/" "/" "$finalnginxconf"
-else
-    ynh_replace_string "__PATH__" "$path_url" "$finalnginxconf"
-fi
+yunohost service add $app --log "$final_path/.kodi/temp/kodi.log" --needs_exposed_ports $port
+
+#=================================================
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Starting a systemd service..."
+
+# Start a systemd service
+ynh_systemd_action --service_name=$app --action="start"
+
+#=================================================
+# SETUP SSOWAT
+#=================================================
+ynh_script_progression --message="Configuring permissions..."
 
 ynh_app_setting_set "$app" protected_uris "/"
 
 domainregex=$(echo "$domain" | sed 's/-/\%&/g')
 ynh_app_setting_set "$app" skipped_regex "$domainregex/jsonrpc.*$,$domainregex/image.*$"
 
-# Reload SSOwat config
-yunohost app ssowatconf
-
-# Reload Nginx
-systemctl reload nginx
-
+# Make app public if necessary
+if [ $is_public -eq 1 ]
+then
+	# Everyone can access the app.
+	# The "main" permission is automatically created before the install script.
+	ynh_permission_update --permission="main" --add="visitors"
+fi
 
 #=================================================
-# START KODI
+# RELOAD NGINX
 #=================================================
-systemctl start "$app"
+ynh_script_progression --message="Reloading NGINX web server..."
+
+ynh_systemd_action --service_name=nginx --action=reload
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Installation of $app completed"
