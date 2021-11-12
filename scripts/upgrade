@@ -150,7 +150,7 @@ usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add $app --description="media center" --log="$final_path/.kodi/temp/kodi.log" --needs_exposed_ports $port
+yunohost service add $app --description="media center" --log="$final_path/.kodi/temp/kodi.log" --needs_exposed_ports=$port
 
 #=================================================
 # START SYSTEMD SERVICE

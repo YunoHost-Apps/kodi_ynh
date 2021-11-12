@@ -53,8 +53,6 @@ fi
 #=================================================
 ynh_script_progression --message="Validating restoration parameters..."
 
-ynh_webpath_available --domain=$domain --path_url=$path_url \
-	|| ynh_die --message="Path not available: ${domain}${path_url}"
 test ! -d $final_path \
 	|| ynh_die --message="There is already a directory: $final_path "
 
@@ -148,7 +146,7 @@ usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add $app --description="media center" --log="$final_path/.kodi/temp/kodi.log" --needs_exposed_ports $port
+yunohost service add $app --description="media center" --log="$final_path/.kodi/temp/kodi.log" --needs_exposed_ports=$port
 
 #=================================================
 # START SYSTEMD SERVICE
