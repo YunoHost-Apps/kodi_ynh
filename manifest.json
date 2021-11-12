@@ -3,8 +3,8 @@
     "id": "kodi",
     "packaging_format": 1,
     "description": {
-        "en": "Transform your YunoHost server into media center with Kodi",
-        "fr": "Transfromez votre serveur YunoHost en media center avec Kodi"
+        "en": "Media center that brings all your digital media together",
+        "fr": "Centre multimédia qui rassemble tous vos médias numériques"
     },
     "version": "17.3~ynh1",
     "url": "https://kodi.tv",
@@ -21,7 +21,7 @@
         "url": "blog.cecchettosylvain.fr"
     },
     "requirements": {
-        "yunohost": ">= 4.1.3"
+        "yunohost": ">= 4.2.3"
     },
     "multi_instance": false,
     "services": [
@@ -31,8 +31,7 @@
         "install" : [
             {
                 "name": "domain",
-                "type": "domain",
-                "example": "example.com"
+                "type": "domain"
             },
             {
                 "name": "path",
