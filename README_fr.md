@@ -11,7 +11,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 ## Vue d'ensemble
 
-Transfromez votre serveur YunoHost en media center avec Kodi
+Kodi is a media center and entertainment hub that brings all your digital media together. It is 100% free and open source, very customisable and runs on a wide variety of devices. Users can play and view most videos, music, podcasts, games and other digital media files from local and network storage media and the internet.
 
 **Version incluse :** 17.3~ynh1
 
