@@ -43,7 +43,6 @@ ynh_script_progression --message="Stopping and removing the systemd service..."
 # Remove the dedicated systemd config
 ynh_remove_systemd_config
 
-
 #=================================================
 # REMOVE DEPENDENCIES
 #=================================================
@@ -67,7 +66,6 @@ ynh_script_progression --message="Removing NGINX web server configuration..."
 
 # Remove the dedicated NGINX config
 ynh_remove_nginx_config
-
 
 #=================================================
 # CLOSE A PORT

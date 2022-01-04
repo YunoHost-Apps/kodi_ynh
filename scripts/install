@@ -28,7 +28,7 @@ path_url=$YNH_APP_ARG_PATH
 is_public=1
 launch_on_boot=$YNH_APP_ARG_LAUNCH_ON_BOOT
 open_webserver_port=$YNH_APP_ARG_OPEN_WEBSERVER_PORT
-arch=$(ynh_detect_arch)
+arch=$YNH_ARCH
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -64,10 +64,6 @@ ynh_script_progression --message="Finding an available port..."
 # Find an available port
 port=$(ynh_find_port --port=8095)
 ynh_app_setting_set --app=$app --key=port --value=$port
-
-# Optional: Expose this port publicly
-# (N.B.: you only need to do this if the app actually needs to expose the port publicly.
-# If you do this and the app doesn't actually need you are CREATING SECURITY HOLES IN THE SERVER !)
 
 # Open the port
 # ynh_script_progression --message="Configuring firewall..."
