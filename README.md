@@ -17,7 +17,8 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 Kodi is a media center and entertainment hub that brings all your digital media together. It is 100% free and open source, very customisable and runs on a wide variety of devices. Users can play and view most videos, music, podcasts, games and other digital media files from local and network storage media and the internet.
 
-**Shipped version:** 17.3~ynh1
+
+**Shipped version:** 19.1~ynh1
 
 
 
