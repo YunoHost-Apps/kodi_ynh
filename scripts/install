@@ -69,7 +69,7 @@ ynh_app_setting_set --app=$app --key=port --value=$port
 # If you do this and the app doesn't actually need you are CREATING SECURITY HOLES IN THE SERVER !)
 
 # Open the port
-# ynh_script_progression --message="Configuring firewall..."
+ynh_script_progression --message="Configuring firewall..."
 if [ "$open_webserver_port" -eq 1 ]
 then
 	ynh_exec_warn_less yunohost firewall allow --no-upnp TCP $port
@@ -104,7 +104,7 @@ fi
 ynh_script_progression --message="Configuring system user..."
 
 # Create a system user
-ynh_system_user_create --username=$app --home_dir=$final_path
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # NGINX CONFIGURATION

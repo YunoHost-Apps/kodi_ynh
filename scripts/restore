@@ -37,10 +37,10 @@ port=$(ynh_app_setting_get --app=$app --key=port)
 #=================================================
 # FIND AND OPEN A PORT
 #=================================================
-ynh_script_progression --message="Finding an available port..."
+# ynh_script_progression --message="Finding an available port..."
 
 # Open the port
-# ynh_script_progression --message="Configuring firewall..."
+ynh_script_progression --message="Configuring firewall..."
 if [ "$open_webserver_port" -eq 1 ]
 then
     ynh_exec_warn_less yunohost firewall allow --no-upnp TCP $port
@@ -69,7 +69,7 @@ ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 ynh_script_progression --message="Recreating the dedicated system user..."
 
 # Create the dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir=$final_path
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # RESTORE THE APP MAIN DIR
