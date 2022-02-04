@@ -28,7 +28,6 @@ path_url=$YNH_APP_ARG_PATH
 is_public=1
 launch_on_boot=$YNH_APP_ARG_LAUNCH_ON_BOOT
 open_webserver_port=$YNH_APP_ARG_OPEN_WEBSERVER_PORT
-arch=$(ynh_detect_arch)
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -89,7 +88,7 @@ if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
 	pkg_dependencies="$pkg_dependencies $package_check_dependencies"
 fi
 
-if [[ $arch != arm*  ]]; then
+if [[ $YNH_ARCH != arm*  ]]; then
 	ynh_install_app_dependencies $pkg_dependencies
 else
 	ynh_install_app_dependencies $arm_pkg_dependencies
@@ -133,7 +132,7 @@ mkdir -p "$final_path/.kodi/userdata/"
 ynh_add_config --template="../conf/advancedsettings.xml" --destination="$final_path/.kodi/userdata/advancedsettings.xml"
 
 mkdir -p "$final_path/.kodi/addons/"
-if [[ $arch != arm*  ]]; then
+if [[ $YNH_ARCH != arm*  ]]; then
      ynh_setup_source --dest_dir="$final_path/.kodi/addons/" --source_id="arm-chorus2" 
 fi
 

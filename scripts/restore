@@ -33,7 +33,6 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 launch_on_boot=$(ynh_app_setting_get --app=$app --key=launch_on_boot)
 open_webserver_port=$(ynh_app_setting_get --app=$app --key=open_webserver_port)
 port=$(ynh_app_setting_get --app=$app --key=port)
-arch=$(ynh_detect_arch)
 
 #=================================================
 # FIND AND OPEN A PORT
@@ -94,7 +93,7 @@ if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
 	pkg_dependencies="$pkg_dependencies $package_check_dependencies"
 fi
 
-if [[ $arch != arm*  ]]; then
+if [[ $YNH_ARCH != arm*  ]]; then
 	ynh_install_app_dependencies $pkg_dependencies
 else
 	ynh_install_app_dependencies $arm_pkg_dependencies
