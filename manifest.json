@@ -6,7 +6,7 @@
         "en": "Media center that brings all your digital media together",
         "fr": "Centre multimédia qui rassemble tous vos médias numériques"
     },
-    "version": "17.3~ynh1",
+    "version": "19.1~ynh1",
     "url": "https://kodi.tv",
     "upstream": {
         "license": "GPL-2.0",
@@ -21,7 +21,7 @@
         "url": "blog.cecchettosylvain.fr"
     },
     "requirements": {
-        "yunohost": ">= 4.2.3"
+        "yunohost": ">= 4.3.0"
     },
     "multi_instance": false,
     "services": [
