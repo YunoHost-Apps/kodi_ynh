@@ -1,5 +1,5 @@
 [Unit]
-Description=Kodi Media Center
+Description=Kodi: Media Center
 
 # if you don't need the MySQL DB backend, this should be sufficient
 After=systemd-user-sessions.service network.target sound.target

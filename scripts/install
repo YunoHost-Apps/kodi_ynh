@@ -160,7 +160,7 @@ ynh_script_progression --message="Securing files and directories..."
 chmod 750 "$final_path"
 chmod -R o-rwx "$final_path"
 chown -R $app:$app "$final_path"
-usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
+usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input "$app"
 
 #=================================================
 # INTEGRATE SERVICE IN YUNOHOST
