@@ -13,6 +13,7 @@ Type=simple
 User=__APP__
 Group=__APP__
 #PAMName=login # you might want to try this one, did not work on all systems
+Environment="LIBVA_DRIVER_NAME=nvidia" # FIXME : Hmmm this should only be needed for package check context I think ?
 ExecStart=/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi -- :0 -nolisten tcp vt7
 Restart=on-abort
 RestartSec=5
