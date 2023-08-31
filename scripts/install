@@ -85,7 +85,7 @@ ynh_setup_source --dest_dir="$tmpdir" --source_id="deb-multimedia-keyring"
 dpkg -i "$tmpdir/deb-multimedia-keyring.deb"
 
 if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
-        ynh_install_extra_app_dependencies --repo="deb http://deb.debian.org/debian $(ynh_get_debian_release) non-free" --package="nvidia-vdpau-driver nvidia-installer-cleanup nvidia-legacy-check libvdpau1 nvidia-alternative"
+        ynh_install_extra_app_dependencies --repo="deb http://deb.debian.org/debian $(ynh_get_debian_release) contrib non-free" --package="nvidia-vdpau-driver nvidia-installer-cleanup nvidia-legacy-check libvdpau1 nvidia-alternative"
 	pkg_dependencies="$pkg_dependencies $package_check_dependencies"
 fi
 
