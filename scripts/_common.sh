@@ -5,7 +5,7 @@
 #=================================================
 
 # dependencies used by the app
-pkg_dependencies="xorg xinit dbus-x11 kodi"
+pkg_dependencies="xorg xinit dbus-x11 kodi samba-common-bin"
 
 arm_pkg_dependencies="xserver-xorg-legacy xorg dbus-x11 kodi samba-common-bin"
 
