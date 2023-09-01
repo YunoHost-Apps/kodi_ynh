@@ -100,8 +100,8 @@ if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
 fi
 
 #FIXME : this is only for debugging on the CI ...
-LIBVA_DRIVER_NAME=nvidia /usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/lib/x86_64-linux-gnu/kodi/kodi-xrandr
-LIBVA_DRIVER_NAME=nvidia /usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/lib/x86_64-linux-gnu/kodi/kodi-xrandr --output DUMMY0 --gamma 0:0:0 --mode 1024x768
+LIBVA_DRIVER_NAME=nvidia /usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/lib/x86_64-linux-gnu/kodi/kodi-xrandr >&2
+LIBVA_DRIVER_NAME=nvidia /usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/lib/x86_64-linux-gnu/kodi/kodi-xrandr --output DUMMY0 --gamma 0:0:0 --mode 1024x768 --crtc 0
 exit 1
 
 #=================================================
