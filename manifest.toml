@@ -1,0 +1,78 @@
+#:schema https://raw.githubusercontent.com/YunoHost/apps/master/schemas/manifest.v2.schema.json
+
+packaging_format = 2
+
+id = "kodi"
+name = "Kodi"
+description.en = "Media center that brings all your digital media together"
+description.fr = "Centre multimédia qui rassemble tous vos médias numériques"
+
+version = "19.1~ynh1"
+
+maintainers = ["Sylvain Cecchetto"]
+
+[upstream]
+license = "GPL-2.0"
+website = "https://kodi.tv"
+admindoc = "https://kodi.wiki/view/Main_Page"
+code = "https://github.com/xbmc"
+cpe = "???" # FIXME: optional but recommended if relevant, this is meant to contain the Common Platform Enumeration, which is sort of a standard id for applications defined by the NIST. In particular, Yunohost may use this is in the future to easily track CVE (=security reports) related to apps. The CPE may be obtained by searching here: https://nvd.nist.gov/products/cpe/search. For example, for Nextcloud, the CPE is 'cpe:2.3:a:nextcloud:nextcloud' (no need to include the version number)
+fund = "???" # FIXME: optional but recommended (or remove if irrelevant / not applicable). This is meant to be an URL where people can financially support this app, especially when its development is based on volunteers and/or financed by its community. YunoHost may later advertise it in the webadmin.
+
+[integration]
+yunohost = ">= 4.3.0"
+architectures = "all" # FIXME: can be replaced by a list of supported archs using the dpkg --print-architecture nomenclature (amd64/i386/armhf/arm64), for example: ["amd64", "i386"]
+multi_instance = false
+ldap = "?" # FIXME: replace with true, false, or "not_relevant". Not to confuse with the "sso" key : the "ldap" key corresponds to wether or not a user *can* login on the app using its YunoHost credentials.
+sso = "?" # FIXME: replace with true, false, or "not_relevant". Not to confuse with the "ldap" key : the "sso" key corresponds to wether or not a user is *automatically logged-in* on the app when logged-in on the YunoHost portal.
+disk = "50M" # FIXME: replace with an **estimate** minimum disk requirement. e.g. 20M, 400M, 1G, ...
+ram.build = "50M" # FIXME: replace with an **estimate** minimum ram requirement. e.g. 50M, 400M, 1G, ...
+ram.runtime = "50M" # FIXME: replace with an **estimate** minimum ram requirement. e.g. 50M, 400M, 1G, ...
+
+[install]
+    [install.domain]
+    # this is a generic question - ask strings are automatically handled by Yunohost's core
+    type = "domain"
+
+    [install.path]
+    # this is a generic question - ask strings are automatically handled by Yunohost's core
+    type = "path"
+    default = "/kodi"
+
+    [install.launch_on_boot]
+    ask.en = "Launch Kodi at YunoHost server startup"
+    ask.fr = "Démarrer Kodi au démarrage du serveur YunoHost"
+    type = "boolean"
+    default = true
+
+    [install.open_webserver_port]
+    ask.en = "Open port 8080 in order to use a smartphone Kodi remote app on your local network"
+    ask.fr = "Ouvrir le port 8080 afin de pouvoir utiliser une application smartphone de télécommande Kodi sur le réseau local"
+    type = "boolean"
+    default = false
+
+[resources]
+    [resources.sources]
+        [resources.sources.arm-chorus2]
+        url = "https://github.com/xbmc/chorus2/releases/download/2.4.4/webinterface.default.2.4.4.zip"
+        sha256 = "efa76c18a155f263183df9eaa345e859f017000da064c35ec9809ff5c09e31c4"
+
+        [resources.sources.deb-multimedia-keyring]
+        url = "http://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb"
+        sha256 = "9faa6f6cba80aeb69c9bac139b74a3d61596d4486e2458c2c65efe9e21ff3c7d"
+        format = "deb"
+        rename = "deb-multimedia-keyring.deb"
+
+
+    [resources.system_user]
+
+    [resources.install_dir]
+
+    [resources.permissions]
+    main.url = "/"
+
+    [resources.ports]
+    main.default = 8095
+
+    [resources.apt]
+    packages = "xorg, xinit, dbus-x11, kodi, xserver-xorg-legacy, xorg, dbus-x11, kodi, xserver-xorg-video-dummy"

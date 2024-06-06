@@ -12,16 +12,16 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..."
+#REMOVEME? ynh_script_progression --message="Loading installation settings..."
 
-app=$YNH_APP_INSTANCE_NAME
+#REMOVEME? app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get --app=$app --key=domain)
-path_url=$(ynh_app_setting_get --app=$app --key=path)
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-launch_on_boot=$(ynh_app_setting_get --app=$app --key=launch_on_boot)
-open_webserver_port=$(ynh_app_setting_get --app=$app --key=open_webserver_port)
-port=$(ynh_app_setting_get --app=$app --key=port)
+#REMOVEME? domain=$(ynh_app_setting_get --app=$app --key=domain)
+#REMOVEME? path=$(ynh_app_setting_get --app=$app --key=path)
+#REMOVEME? #REMOVEME? install_dir=$(ynh_app_setting_get --app=$app --key=install_dir)
+#REMOVEME? launch_on_boot=$(ynh_app_setting_get --app=$app --key=launch_on_boot)
+#REMOVEME? open_webserver_port=$(ynh_app_setting_get --app=$app --key=open_webserver_port)
+#REMOVEME? port=$(ynh_app_setting_get --app=$app --key=port)
 
 #=================================================
 # CHECK VERSION
@@ -33,16 +33,16 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..."
+#REMOVEME? ynh_script_progression --message="Backing up the app before upgrading (may take a while)..."
 
 # Backup the current version of the app
-ynh_backup_before_upgrade
-ynh_clean_setup () {
+#REMOVEME? ynh_backup_before_upgrade
+#REMOVEME? ynh_clean_setup () {
 	# Restore it if the upgrade fails
-	ynh_restore_upgradebackup
+#REMOVEME? 	ynh_restore_upgradebackup
 }
 # Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
+#REMOVEME? ynh_abort_if_errors
 
 #=================================================
 # STANDARD UPGRADE STEPS
@@ -59,8 +59,8 @@ ynh_systemd_action --service_name=$app --action="stop"
 ynh_script_progression --message="Ensuring downward compatibility..."
 
 # Cleaning legacy permissions
-if ynh_legacy_permissions_exists; then
-	ynh_legacy_permissions_delete_all
+#REMOVEME? if ynh_legacy_permissions_exists; then
+#REMOVEME? 	ynh_legacy_permissions_delete_all
 
 	ynh_app_setting_delete --app=$app --key=is_public
 fi
@@ -76,20 +76,20 @@ fi
 
 # Fix launch_on_boot as a boolean value
 if [ "$open_webserver_port" = "Yes" ]; then
-	ynh_app_setting_set --app=$app --key=open_webserver_port --value=1
+#REMOVEME? 	ynh_app_setting_set --app=$app --key=open_webserver_port --value=1
 	open_webserver_port=1
 elif [ "$open_webserver_port" = "No" ]; then
-	ynh_app_setting_set --app=$app --key=open_webserver_port --value=0
+#REMOVEME? 	ynh_app_setting_set --app=$app --key=open_webserver_port --value=0
 	open_webserver_port=0
 fi
 
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..."
+#REMOVEME? ynh_script_progression --message="Making sure dedicated system user exists..."
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir="$final_path"
+#REMOVEME? ynh_system_user_create --username=$app --home_dir="$install_dir"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -102,20 +102,20 @@ ynh_add_nginx_config
 #=================================================
 # UPGRADE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Upgrading dependencies..."
+#REMOVEME? ynh_script_progression --message="Upgrading dependencies..."
 
 tmpdir=$(mktemp -d)
 ynh_setup_source --dest_dir="$tmpdir" --source_id="deb-multimedia-keyring"
 dpkg -i "$tmpdir/deb-multimedia-keyring.deb"
 
 if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
-	pkg_dependencies="$pkg_dependencies $package_check_dependencies"
+#REMOVEME? 	pkg_dependencies="$pkg_dependencies $package_check_dependencies"
 fi
 
 if [[ $YNH_ARCH != arm*  ]]; then
-	ynh_install_app_dependencies $pkg_dependencies
+#REMOVEME? 	ynh_install_app_dependencies $pkg_dependencies
 else
-	ynh_install_app_dependencies $arm_pkg_dependencies
+#REMOVEME? 	ynh_install_app_dependencies $arm_pkg_dependencies
 fi
 
 if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
@@ -138,9 +138,9 @@ ynh_add_systemd_config
 ynh_script_progression --message="Securing files and directories..."
 
 # Set permissions on app files
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:$app "$final_path"
+chmod 750 "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R $app:$app "$install_dir"
 usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 
 #=================================================
@@ -148,7 +148,7 @@ usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add $app --description="media center" --log="$final_path/.kodi/temp/kodi.log" --needs_exposed_ports=$port
+yunohost service add $app --description="media center" --log="$install_dir/.kodi/temp/kodi.log" --needs_exposed_ports=$port
 
 #=================================================
 # START SYSTEMD SERVICE
@@ -160,9 +160,9 @@ ynh_systemd_action --service_name=$app --action="start"
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..."
+#REMOVEME? ynh_script_progression --message="Reloading NGINX web server..."
 
-ynh_systemd_action --service_name=nginx --action=reload
+#REMOVEME? ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT

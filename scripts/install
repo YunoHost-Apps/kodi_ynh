@@ -13,56 +13,56 @@ source /usr/share/yunohost/helpers
 # MANAGE SCRIPT FAILURE
 #=================================================
 
-ynh_clean_setup () {
+#REMOVEME? ynh_clean_setup () {
 	ynh_clean_check_starting
 }
 # Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
+#REMOVEME? ynh_abort_if_errors
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
 
-domain=$YNH_APP_ARG_DOMAIN
-path_url=$YNH_APP_ARG_PATH
+#REMOVEME? domain=$YNH_APP_ARG_DOMAIN
+#REMOVEME? path=$YNH_APP_ARG_PATH
 is_public=1
-launch_on_boot=$YNH_APP_ARG_LAUNCH_ON_BOOT
-open_webserver_port=$YNH_APP_ARG_OPEN_WEBSERVER_PORT
+#REMOVEME? launch_on_boot=$YNH_APP_ARG_LAUNCH_ON_BOOT
+#REMOVEME? open_webserver_port=$YNH_APP_ARG_OPEN_WEBSERVER_PORT
 
-app=$YNH_APP_INSTANCE_NAME
+#REMOVEME? app=$YNH_APP_INSTANCE_NAME
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
-ynh_script_progression --message="Validating installation parameters..."
+#REMOVEME? ynh_script_progression --message="Validating installation parameters..."
 
-final_path=/var/www/$app
-test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
+#REMOVEME? install_dir=/var/www/$app
+#REMOVEME? test ! -e "$install_dir" || ynh_die --message="This path already contains a folder"
 
 # Register (book) web path
-ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
+#REMOVEME? ynh_webpath_register --app=$app --domain=$domain --path=$path
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
-ynh_script_progression --message="Storing installation settings..."
+#REMOVEME? ynh_script_progression --message="Storing installation settings..."
 
-ynh_app_setting_set --app=$app --key=domain --value=$domain
-ynh_app_setting_set --app=$app --key=path --value=$path_url
-ynh_app_setting_set --app=$app --key=final_path --value=$final_path
+#REMOVEME? ynh_app_setting_set --app=$app --key=domain --value=$domain
+#REMOVEME? ynh_app_setting_set --app=$app --key=path --value=$path
+#REMOVEME? ynh_app_setting_set --app=$app --key=install_dir --value=$install_dir
 ynh_app_setting_set --app=$app --key=launch_on_boot --value=$launch_on_boot
-ynh_app_setting_set --app=$app --key=open_webserver_port --value=$open_webserver_port
+#REMOVEME? ynh_app_setting_set --app=$app --key=open_webserver_port --value=$open_webserver_port
 
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
 # FIND AND OPEN A PORT
 #=================================================
-ynh_script_progression --message="Finding an available port..."
+#REMOVEME? ynh_script_progression --message="Finding an available port..."
 
 # Find an available port
-port=$(ynh_find_port --port=8095)
-ynh_app_setting_set --app=$app --key=port --value=$port
+#REMOVEME? port=$(ynh_find_port --port=8095)
+#REMOVEME? ynh_app_setting_set --app=$app --key=port --value=$port
 
 # Optional: Expose this port publicly
 # (N.B.: you only need to do this if the app actually needs to expose the port publicly.
@@ -78,20 +78,20 @@ fi
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Installing dependencies..."
+#REMOVEME? ynh_script_progression --message="Installing dependencies..."
 
 tmpdir=$(mktemp -d)
 ynh_setup_source --dest_dir="$tmpdir" --source_id="deb-multimedia-keyring"
 dpkg -i "$tmpdir/deb-multimedia-keyring.deb"
 
 if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
-	pkg_dependencies="$pkg_dependencies $package_check_dependencies"
+#REMOVEME? 	pkg_dependencies="$pkg_dependencies $package_check_dependencies"
 fi
 
 if [[ $YNH_ARCH != arm*  ]]; then
-	ynh_install_app_dependencies $pkg_dependencies
+#REMOVEME? 	ynh_install_app_dependencies $pkg_dependencies
 else
-	ynh_install_app_dependencies $arm_pkg_dependencies
+#REMOVEME? 	ynh_install_app_dependencies $arm_pkg_dependencies
 fi
 
 if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
@@ -101,10 +101,10 @@ fi
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Configuring system user..."
+#REMOVEME? ynh_script_progression --message="Configuring system user..."
 
 # Create a system user
-ynh_system_user_create --username=$app --home_dir="$final_path"
+#REMOVEME? ynh_system_user_create --username=$app --home_dir="$install_dir"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -128,12 +128,12 @@ ynh_replace_string --match_string="allowed_users=console" --replace_string="allo
 #=================================================
 ynh_script_progression --message="Configuring Kodi..."
 
-mkdir -p "$final_path/.kodi/userdata/"
-ynh_add_config --template="../conf/advancedsettings.xml" --destination="$final_path/.kodi/userdata/advancedsettings.xml"
+mkdir -p "$install_dir/.kodi/userdata/"
+ynh_add_config --template="../conf/advancedsettings.xml" --destination="$install_dir/.kodi/userdata/advancedsettings.xml"
 
-mkdir -p "$final_path/.kodi/addons/"
+mkdir -p "$install_dir/.kodi/addons/"
 if [[ $YNH_ARCH != arm*  ]]; then
-     ynh_setup_source --dest_dir="$final_path/.kodi/addons/" --source_id="arm-chorus2" 
+     ynh_setup_source --dest_dir="$install_dir/.kodi/addons/" --source_id="arm-chorus2" 
 fi
 
 #=================================================
@@ -157,9 +157,9 @@ fi
 ynh_script_progression --message="Securing files and directories..."
 
 # Set permissions to app files
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:$app "$final_path"
+chmod 750 "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R $app:$app "$install_dir"
 usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 
 #=================================================
@@ -167,7 +167,7 @@ usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,netdev "$app"
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add $app --description="media center" --log="$final_path/.kodi/temp/kodi.log" --needs_exposed_ports=$port
+yunohost service add $app --description="media center" --log="$install_dir/.kodi/temp/kodi.log" --needs_exposed_ports=$port
 
 #=================================================
 # START SYSTEMD SERVICE
@@ -180,27 +180,27 @@ ynh_systemd_action --service_name=$app --action="start"
 #=================================================
 # SETUP SSOWAT
 #=================================================
-ynh_script_progression --message="Configuring permissions..."
+#REMOVEME? ynh_script_progression --message="Configuring permissions..."
 
 ynh_app_setting_set "$app" protected_uris "/"
 
 domainregex=$(echo "$domain" | sed 's/-/\%&/g')
-ynh_app_setting_set "$app" skipped_regex "$domainregex/jsonrpc.*$,$domainregex/image.*$"
+#REMOVEME? ynh_app_setting_set "$app" skipped_regex "$domainregex/jsonrpc.*$,$domainregex/image.*$"
 
 # Make app public if necessary
-if [ $is_public -eq 1 ]
+#REMOVEME? if [ $is_public -eq 1 ]
 then
 	# Everyone can access the app.
 	# The "main" permission is automatically created before the install script.
-	ynh_permission_update --permission="main" --add="visitors"
+#REMOVEME? 	ynh_permission_update --permission="main" --add="visitors"
 fi
 
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..."
+#REMOVEME? ynh_script_progression --message="Reloading NGINX web server..."
 
-ynh_systemd_action --service_name=nginx --action=reload
+#REMOVEME? ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT
