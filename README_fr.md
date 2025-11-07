@@ -27,11 +27,11 @@ Kodi is a media center and entertainment hub that brings all your digital media 
 
 ## Documentations et ressources
 
-- Site officiel de l’app : <https://kodi.tv>
-- Documentation officielle de l’admin : <https://kodi.wiki/view/Main_Page>
-- Dépôt de code officiel de l’app : <https://github.com/xbmc>
-- YunoHost Store : <https://apps.yunohost.org/app/kodi>
-- Signaler un bug : <https://github.com/YunoHost-Apps/kodi_ynh/issues>
+* Site officiel de l’app : <https://kodi.tv>
+* Documentation officielle de l’admin : <https://kodi.wiki/view/Main_Page>
+* Dépôt de code officiel de l’app : <https://github.com/xbmc>
+* YunoHost Store: <https://apps.yunohost.org/app/kodi>
+* Signaler un bug : <https://github.com/YunoHost-Apps/kodi_ynh/issues>
 
 ## Informations pour les développeurs
 
